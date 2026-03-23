@@ -1,3 +1,23 @@
+const SUPABASE_URL = "https://kprlkctuyggqypjqwrey.supabase.co";
+const SUPABASE_KEY = "sb_publishable_w3xLD4D-gk0HQwRCOY7kow_7aa_qLzM";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function protectPage() {
+  const { data, error } = await supabaseClient.auth.getSession();
+  console.log("PAGE SESSION:", data, error);
+
+  if (!data?.session) {
+    window.location.href = "auth.html";
+    return false;
+  }
+
+  return true;
+}
+
+async function logoutUser() {
+  await supabaseClient.auth.signOut();
+  window.location.href = "auth.html";
+}
 // =========================
 // SUPABASE CONNECTION
 // =========================
@@ -8,7 +28,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // =========================
 // APP STATE
 // =========================
-const STORAGE_KEY = "studentSuiteFinalPlatformAuthV2";
+const STORAGE_KEY = "studentSuiteFinalPlatformAuthV1";
 const SCHOOL_YEARS = ["9th Grade", "10th Grade", "11th Grade", "12th Grade"];
 const QUARTERS = ["Q1", "Q2", "Q3", "Q4"];
 
@@ -68,8 +88,8 @@ function showAuthMessage(message, isError = false) {
   if (!el) return;
 
   el.innerHTML = `
-    <div class="list-card" style="border-color:${isError ? "#f0c8c8" : "#bfd3f4"};">
-      <div class="list-sub" style="color:${isError ? "#b33939" : "#163a70"};">
+    <div class="list-card" style="border-color:${isError ? '#f0c8c8' : '#bfd3f4'};">
+      <div class="list-sub" style="color:${isError ? '#b33939' : '#163a70'};">
         ${message}
       </div>
     </div>
@@ -77,44 +97,33 @@ function showAuthMessage(message, isError = false) {
 }
 
 async function signUpUser(email, password) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password
-  });
-
-  console.log("SIGN UP RESULT:", data, error);
+  const { data, error } = await supabase.auth.signUp({ email, password });
 
   if (error) {
     showAuthMessage(error.message, true);
     return;
   }
 
-  if (data?.session || data?.user) {
-    showAuthMessage("Account created successfully. Redirecting...");
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 800);
+  if (data?.session) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  if (data?.user) {
+    showAuthMessage("Account created. If email confirmation is enabled in Supabase, check your inbox first.");
   }
 }
 
 async function signInUser(email, password) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  console.log("LOGIN RESULT:", data, error);
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     showAuthMessage(error.message, true);
     return;
   }
 
-  if (data?.session || data?.user) {
-    showAuthMessage("Login successful. Redirecting...");
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 500);
+  if (data?.user) {
+    window.location.href = "index.html";
   }
 }
 
@@ -213,24 +222,24 @@ function getGradeScaleSorted() {
 }
 
 function getLetterDataFromPercent(percent) {
-  return getGradeScaleSorted().find((band) => percent >= Number(band.min)) || { label: "F", gpa: 0 };
+  return getGradeScaleSorted().find(band => percent >= Number(band.min)) || { label: "F", gpa: 0 };
 }
 
 function getCourseWeight(level) {
-  const match = state.settings.courseWeights.find((item) => item.level === level);
+  const match = state.settings.courseWeights.find(item => item.level === level);
   return match ? Number(match.weight) : 0;
 }
 
 function getCoursesForYear(year) {
-  return state.courses.filter((course) => course.schoolYear === year);
+  return state.courses.filter(course => course.schoolYear === year);
 }
 
 function getAssignmentsForCourse(courseId) {
-  return state.assignments.filter((a) => a.courseId === courseId);
+  return state.assignments.filter(a => a.courseId === courseId);
 }
 
 function getAssignmentsForCourseQuarter(courseId, quarter) {
-  return state.assignments.filter((a) => a.courseId === courseId && a.quarter === quarter);
+  return state.assignments.filter(a => a.courseId === courseId && a.quarter === quarter);
 }
 
 function getQuarterAverage(courseId, quarter) {
@@ -246,8 +255,8 @@ function getQuarterAverage(courseId, quarter) {
 
 function getCourseYearAverage(courseId) {
   const quarterAverages = QUARTERS
-    .map((q) => getQuarterAverage(courseId, q))
-    .filter((avg) => avg !== null);
+    .map(q => getQuarterAverage(courseId, q))
+    .filter(avg => avg !== null);
 
   if (!quarterAverages.length) return null;
 
@@ -270,7 +279,7 @@ function getCourseYearGpa(course) {
 
 function getYearGpa(year) {
   const courses = getCoursesForYear(year);
-  const graded = courses.map((course) => getCourseYearGpa(course)).filter(Boolean);
+  const graded = courses.map(course => getCourseYearGpa(course)).filter(Boolean);
 
   if (!graded.length) return { weighted: 0, unweighted: 0 };
 
@@ -281,7 +290,7 @@ function getYearGpa(year) {
 }
 
 function getCumulativeGpa() {
-  const yearly = SCHOOL_YEARS.map((year) => {
+  const yearly = SCHOOL_YEARS.map(year => {
     const hasCourses = getCoursesForYear(year).length > 0;
     return hasCourses ? getYearGpa(year) : null;
   }).filter(Boolean);
@@ -335,8 +344,8 @@ function renderQuarterOverview() {
 
   target.innerHTML = `
     <div class="quarter-overview-stack">
-      ${QUARTERS.map((quarter) => {
-        const values = courses.map((course) => getQuarterAverage(course.id, quarter)).filter((v) => v !== null);
+      ${QUARTERS.map(quarter => {
+        const values = courses.map(course => getQuarterAverage(course.id, quarter)).filter(v => v !== null);
         const avg = values.length ? values.reduce((a, b) => a + b, 0) / values.length : null;
 
         return `
@@ -362,7 +371,7 @@ function renderCourseCards(targetId) {
 
   target.innerHTML = `
     <div class="course-stack">
-      ${courses.map((course) => {
+      ${courses.map(course => {
         const yearData = getCourseYearGpa(course);
         const letterData = yearData ? getLetterDataFromPercent(yearData.average) : null;
 
@@ -390,8 +399,8 @@ function renderDeadlinePreview() {
   const target = document.getElementById("deadlinePreview");
   if (!target) return;
 
-  const schoolDeadlines = state.assignments.map((a) => {
-    const course = state.courses.find((c) => c.id === a.courseId);
+  const schoolDeadlines = state.assignments.map(a => {
+    const course = state.courses.find(c => c.id === a.courseId);
     return {
       title: a.name,
       subtitle: `${course ? course.name : "Course"} • ${a.quarter}`,
@@ -400,7 +409,7 @@ function renderDeadlinePreview() {
     };
   });
 
-  const collegeDeadlines = state.college.deadlines.map((d) => ({
+  const collegeDeadlines = state.college.deadlines.map(d => ({
     title: d.school,
     subtitle: d.type,
     source: "College",
@@ -408,7 +417,7 @@ function renderDeadlinePreview() {
   }));
 
   const combined = [...schoolDeadlines, ...collegeDeadlines]
-    .filter((item) => item.date)
+    .filter(item => item.date)
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, 6);
 
@@ -419,7 +428,7 @@ function renderDeadlinePreview() {
 
   target.innerHTML = `
     <div class="list-stack">
-      ${combined.map((item) => `
+      ${combined.map(item => `
         <div class="list-card">
           <div class="list-title">${item.title}</div>
           <div class="list-sub">${item.source} • ${item.subtitle} • ${item.date}</div>
@@ -439,7 +448,7 @@ function renderCalendar() {
   const target = document.getElementById("calendarGrid");
   if (!target) return;
 
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const firstDay = new Date(calendarYear, calendarMonth, 1);
@@ -455,12 +464,12 @@ function renderCalendar() {
 
   for (let day = 1; day <= totalDays; day++) {
     const dateString = `${calendarYear}-${String(calendarMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const events = state.calendarEvents.filter((e) => e.date === dateString);
+    const events = state.calendarEvents.filter(e => e.date === dateString);
 
     cells.push(`
       <div class="calendar-day">
         <div class="calendar-day-number">${day}</div>
-        ${events.map((e) => `<div class="calendar-event">${e.title}</div>`).join("")}
+        ${events.map(e => `<div class="calendar-event">${e.title}</div>`).join("")}
       </div>
     `);
   }
@@ -473,7 +482,7 @@ function renderCalendar() {
         <button class="btn btn-dark" onclick="changeCalendarMonth(1)">Next</button>
       </div>
       <div class="calendar-header">
-        ${weekdayNames.map((day) => `<div class="calendar-weekday">${day}</div>`).join("")}
+        ${weekdayNames.map(day => `<div class="calendar-weekday">${day}</div>`).join("")}
       </div>
       <div class="calendar-grid">${cells.join("")}</div>
     </div>
@@ -504,12 +513,12 @@ function renderYearSelectors() {
   const academicsSelector = document.getElementById("academicsYearSelector");
   const courseYear = document.getElementById("courseYear");
 
-  [dashboardSelector, academicsSelector, courseYear].forEach((select) => {
+  [dashboardSelector, academicsSelector, courseYear].forEach(select => {
     if (!select) return;
 
     const currentValue = select.id === "courseYear" ? null : state.currentYearView;
 
-    select.innerHTML = SCHOOL_YEARS.map((year) => `
+    select.innerHTML = SCHOOL_YEARS.map(year => `
       <option value="${year}" ${currentValue === year ? "selected" : ""}>${year}</option>
     `).join("");
 
@@ -536,9 +545,9 @@ function renderYearSelectors() {
 }
 
 function bindCourseTextareaAutosave() {
-  document.querySelectorAll("textarea[data-course-id]").forEach((textarea) => {
+  document.querySelectorAll("textarea[data-course-id]").forEach(textarea => {
     textarea.addEventListener("blur", () => {
-      const course = state.courses.find((c) => c.id === textarea.dataset.courseId);
+      const course = state.courses.find(c => c.id === textarea.dataset.courseId);
       if (!course) return;
       course[textarea.dataset.field] = textarea.value;
       saveState();
@@ -547,9 +556,9 @@ function bindCourseTextareaAutosave() {
 }
 
 function bindExtracurricularAutosave() {
-  document.querySelectorAll("textarea[data-activity-id]").forEach((textarea) => {
+  document.querySelectorAll("textarea[data-activity-id]").forEach(textarea => {
     textarea.addEventListener("blur", () => {
-      const activity = state.extracurriculars.find((a) => a.id === textarea.dataset.activityId);
+      const activity = state.extracurriculars.find(a => a.id === textarea.dataset.activityId);
       if (!activity) return;
       activity[textarea.dataset.activityField] = textarea.value;
       saveState();
@@ -558,44 +567,44 @@ function bindExtracurricularAutosave() {
 }
 
 function deleteGradeBand(id) {
-  state.settings.gradeScale = state.settings.gradeScale.filter((item) => item.id !== id);
+  state.settings.gradeScale = state.settings.gradeScale.filter(item => item.id !== id);
   saveState();
   renderPage();
 }
 
 function deleteCourseWeight(id) {
-  state.settings.courseWeights = state.settings.courseWeights.filter((item) => item.id !== id);
+  state.settings.courseWeights = state.settings.courseWeights.filter(item => item.id !== id);
   saveState();
   renderPage();
 }
 
 function deleteCourse(id) {
-  state.courses = state.courses.filter((course) => course.id !== id);
-  state.assignments = state.assignments.filter((assignment) => assignment.courseId !== id);
+  state.courses = state.courses.filter(course => course.id !== id);
+  state.assignments = state.assignments.filter(assignment => assignment.courseId !== id);
   saveState();
   renderPage();
 }
 
 function deleteAssignment(id) {
-  state.assignments = state.assignments.filter((item) => item.id !== id);
+  state.assignments = state.assignments.filter(item => item.id !== id);
   saveState();
   renderPage();
 }
 
 function deleteDeadline(id) {
-  state.college.deadlines = state.college.deadlines.filter((item) => item.id !== id);
+  state.college.deadlines = state.college.deadlines.filter(item => item.id !== id);
   saveState();
   renderPage();
 }
 
 function deleteCollegeSchool(id) {
-  state.college.schools = state.college.schools.filter((item) => item.id !== id);
+  state.college.schools = state.college.schools.filter(item => item.id !== id);
   saveState();
   renderPage();
 }
 
 function deleteActivity(id) {
-  state.extracurriculars = state.extracurriculars.filter((item) => item.id !== id);
+  state.extracurriculars = state.extracurriculars.filter(item => item.id !== id);
   saveState();
   renderPage();
 }
@@ -608,7 +617,7 @@ function renderGradeBandList() {
   const sorted = getGradeScaleSorted();
   if (countEl) countEl.textContent = sorted.length;
 
-  target.innerHTML = sorted.map((band) => `
+  target.innerHTML = sorted.map(band => `
     <div class="list-card">
       <div class="list-card-row">
         <div>
@@ -630,7 +639,7 @@ function renderCourseWeightList() {
 
   if (countEl) countEl.textContent = state.settings.courseWeights.length;
 
-  target.innerHTML = state.settings.courseWeights.map((item) => `
+  target.innerHTML = state.settings.courseWeights.map(item => `
     <div class="list-card">
       <div class="list-card-row">
         <div>
@@ -657,7 +666,7 @@ function renderSubjectWorkspaces() {
 
   target.innerHTML = `
     <div class="subject-stack">
-      ${courses.map((course) => {
+      ${courses.map(course => {
         const yearData = getCourseYearGpa(course);
         const courseAssignments = getAssignmentsForCourse(course.id).sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -672,7 +681,7 @@ function renderSubjectWorkspaces() {
                 </div>
               </div>
               <div class="hero-mini-meta">
-                ${QUARTERS.map((quarter) => {
+                ${QUARTERS.map(quarter => {
                   const avg = getQuarterAverage(course.id, quarter);
                   return `<span class="soft-tag">${quarter}: ${avg !== null ? avg.toFixed(1) + "%" : "—"}</span>`;
                 }).join("")}
@@ -688,7 +697,7 @@ function renderSubjectWorkspaces() {
               <input type="text" name="assignmentName" placeholder="Assignment name" required />
               <div class="row-three">
                 <select name="assignmentQuarter" required>
-                  ${QUARTERS.map((q) => `<option value="${q}">${q}</option>`).join("")}
+                  ${QUARTERS.map(q => `<option value="${q}">${q}</option>`).join("")}
                 </select>
                 <input type="number" name="assignmentScore" placeholder="Score earned" min="0" step="0.01" required />
                 <input type="number" name="assignmentTotal" placeholder="Points possible" min="1" step="0.01" required />
@@ -726,7 +735,7 @@ function renderSubjectWorkspaces() {
                   </div>
                   ${
                     courseAssignments.length
-                      ? courseAssignments.map((item) => {
+                      ? courseAssignments.map(item => {
                           const percent = (item.score / item.total) * 100;
                           const letter = getLetterDataFromPercent(percent).label;
 
@@ -768,7 +777,7 @@ function renderDeadlines() {
     return;
   }
 
-  target.innerHTML = sorted.map((item) => `
+  target.innerHTML = sorted.map(item => `
     <div class="list-card">
       <div class="list-card-row">
         <div>
@@ -792,7 +801,7 @@ function renderCollegeList() {
     return;
   }
 
-  target.innerHTML = state.college.schools.map((item) => `
+  target.innerHTML = state.college.schools.map(item => `
     <div class="list-card">
       <div class="list-card-row">
         <div>
@@ -824,7 +833,7 @@ function renderExtracurriculars() {
 
   target.innerHTML = `
     <div class="extracurricular-stack">
-      ${state.extracurriculars.map((activity) => `
+      ${state.extracurriculars.map(activity => `
         <div class="extracurricular-card">
           <div class="extracurricular-top">
             <div>
@@ -883,12 +892,12 @@ function bindForms() {
   if (courseForm) {
     const courseLevel = document.getElementById("courseLevel");
     if (courseLevel) {
-      courseLevel.innerHTML = state.settings.courseWeights.map((item) => `
+      courseLevel.innerHTML = state.settings.courseWeights.map(item => `
         <option value="${item.level}">${item.level}</option>
       `).join("");
     }
 
-    courseForm.addEventListener("submit", (e) => {
+    courseForm.addEventListener("submit", e => {
       e.preventDefault();
 
       const schoolYear = document.getElementById("courseYear").value;
@@ -916,7 +925,7 @@ function bindForms() {
 
   const deadlineForm = document.getElementById("deadlineForm");
   if (deadlineForm) {
-    deadlineForm.addEventListener("submit", (e) => {
+    deadlineForm.addEventListener("submit", e => {
       e.preventDefault();
 
       state.college.deadlines.push({
@@ -934,7 +943,7 @@ function bindForms() {
 
   const collegeListForm = document.getElementById("collegeListForm");
   if (collegeListForm) {
-    collegeListForm.addEventListener("submit", (e) => {
+    collegeListForm.addEventListener("submit", e => {
       e.preventDefault();
 
       state.college.schools.push({
@@ -952,7 +961,7 @@ function bindForms() {
 
   const calendarEventForm = document.getElementById("calendarEventForm");
   if (calendarEventForm) {
-    calendarEventForm.addEventListener("submit", (e) => {
+    calendarEventForm.addEventListener("submit", e => {
       e.preventDefault();
 
       addCalendarEvent(
@@ -967,7 +976,7 @@ function bindForms() {
 
   const activityForm = document.getElementById("activityForm");
   if (activityForm) {
-    activityForm.addEventListener("submit", (e) => {
+    activityForm.addEventListener("submit", e => {
       e.preventDefault();
 
       state.extracurriculars.push({
@@ -992,7 +1001,7 @@ function bindForms() {
 
   const gradeBandForm = document.getElementById("gradeBandForm");
   if (gradeBandForm) {
-    gradeBandForm.addEventListener("submit", (e) => {
+    gradeBandForm.addEventListener("submit", e => {
       e.preventDefault();
 
       const label = document.getElementById("bandLabel").value.trim();
@@ -1000,7 +1009,7 @@ function bindForms() {
       const gpa = Number(document.getElementById("bandGpa").value);
       if (!label || Number.isNaN(min) || Number.isNaN(gpa)) return;
 
-      state.settings.gradeScale = state.settings.gradeScale.filter((item) => item.label !== label);
+      state.settings.gradeScale = state.settings.gradeScale.filter(item => item.label !== label);
       state.settings.gradeScale.push({ id: crypto.randomUUID(), label, min, gpa });
 
       saveState();
@@ -1011,14 +1020,14 @@ function bindForms() {
 
   const courseWeightForm = document.getElementById("courseWeightForm");
   if (courseWeightForm) {
-    courseWeightForm.addEventListener("submit", (e) => {
+    courseWeightForm.addEventListener("submit", e => {
       e.preventDefault();
 
       const level = document.getElementById("weightLevel").value.trim();
       const weight = Number(document.getElementById("weightValue").value);
       if (!level || Number.isNaN(weight)) return;
 
-      state.settings.courseWeights = state.settings.courseWeights.filter((item) => item.level !== level);
+      state.settings.courseWeights = state.settings.courseWeights.filter(item => item.level !== level);
       state.settings.courseWeights.push({ id: crypto.randomUUID(), level, weight });
 
       saveState();
@@ -1027,7 +1036,7 @@ function bindForms() {
     });
   }
 
-  ["personalStatement", "extendedResume", "supplementBank", "applicationChecklist", "collegeMaterials"].forEach((id) => {
+  ["personalStatement", "extendedResume", "supplementBank", "applicationChecklist", "collegeMaterials"].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener("blur", () => {
@@ -1039,8 +1048,8 @@ function bindForms() {
 }
 
 function bindSubjectForms() {
-  document.querySelectorAll(".subject-form-inline").forEach((form) => {
-    form.addEventListener("submit", (event) => {
+  document.querySelectorAll(".subject-form-inline").forEach(form => {
+    form.addEventListener("submit", event => {
       event.preventDefault();
 
       const courseId = form.getAttribute("data-course-id");
@@ -1070,7 +1079,7 @@ function bindSubjectForms() {
 }
 
 function fillCollegeTextareas() {
-  ["personalStatement", "extendedResume", "supplementBank", "applicationChecklist", "collegeMaterials"].forEach((id) => {
+  ["personalStatement", "extendedResume", "supplementBank", "applicationChecklist", "collegeMaterials"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = state.college[id] || "";
   });
@@ -1184,17 +1193,8 @@ function renderPage() {
 // STARTUP
 // =========================
 document.addEventListener("DOMContentLoaded", async () => {
-  const session = await requireAuth();
-
-  bindAuthForms();
-
-  if (document.body.dataset.page === "auth") {
-    return;
-  }
-
-  if (!session) {
-    return;
-  }
+  const allowed = await protectPage();
+  if (!allowed) return;
 
   bindForms();
   renderPage();
