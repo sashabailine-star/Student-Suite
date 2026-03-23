@@ -908,3 +908,25 @@ textarea {
     width: 100%;
   }
 }
+.auth-shell {
+  grid-template-columns: 1fr;
+}
+
+.auth-main {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-panel {
+  width: min(960px, 100%);
+}
+
+.auth-two-column {
+  margin-top: 18px;
+}
+
+.auth-card-inner {
+  min-height: 100%;
+}

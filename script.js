@@ -1,5 +1,14 @@
-const STORAGE_KEY = "studentSuiteFinalPlatformV2";
+// =========================
+// SUPABASE CONNECTION
+// =========================
+const SUPABASE_URL = "https://kprlkctuyggqypjqwrey.supabase.co";
+const SUPABASE_KEY = "sb_publishable_w3xLD4D-gk0HQwRCOY7kow_7aa_qLzM";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// =========================
+// APP STATE
+// =========================
+const STORAGE_KEY = "studentSuiteFinalPlatformAuthV1";
 const SCHOOL_YEARS = ["9th Grade", "10th Grade", "11th Grade", "12th Grade"];
 const QUARTERS = ["Q1", "Q2", "Q3", "Q4"];
 
@@ -51,6 +60,102 @@ let state = loadStateFromStorage();
 let calendarYear = 2026;
 let calendarMonth = 2;
 
+// =========================
+// AUTH HELPERS
+// =========================
+function showAuthMessage(message, isError = false) {
+  const el = document.getElementById("authMessage");
+  if (!el) return;
+
+  el.innerHTML = `
+    <div class="list-card" style="border-color:${isError ? '#f0c8c8' : '#bfd3f4'};">
+      <div class="list-sub" style="color:${isError ? '#b33939' : '#163a70'};">
+        ${message}
+      </div>
+    </div>
+  `;
+}
+
+async function signUpUser(email, password) {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+
+  if (error) {
+    showAuthMessage(error.message, true);
+    return;
+  }
+
+  if (data?.session) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  if (data?.user) {
+    showAuthMessage("Account created. If email confirmation is enabled in Supabase, check your inbox first.");
+  }
+}
+
+async function signInUser(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    showAuthMessage(error.message, true);
+    return;
+  }
+
+  if (data?.user) {
+    window.location.href = "index.html";
+  }
+}
+
+async function signOutUser() {
+  await supabase.auth.signOut();
+  window.location.href = "auth.html";
+}
+
+async function requireAuth() {
+  const { data: { session } } = await supabase.auth.getSession();
+  const page = document.body.dataset.page;
+
+  if (page === "auth") {
+    if (session) {
+      window.location.href = "index.html";
+    }
+    return session;
+  }
+
+  if (!session) {
+    window.location.href = "auth.html";
+    return null;
+  }
+
+  return session;
+}
+
+function bindAuthForms() {
+  const signupForm = document.getElementById("signupForm");
+  if (signupForm) {
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("signupEmail").value.trim();
+      const password = document.getElementById("signupPassword").value;
+      await signUpUser(email, password);
+    });
+  }
+
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      await signInUser(email, password);
+    });
+  }
+}
+
+// =========================
+// STORAGE HELPERS
+// =========================
 function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
@@ -89,6 +194,9 @@ function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+// =========================
+// GPA + DATA HELPERS
+// =========================
 function getGradeScaleSorted() {
   return [...state.settings.gradeScale].sort((a, b) => Number(b.min) - Number(a.min));
 }
@@ -151,13 +259,9 @@ function getCourseYearGpa(course) {
 
 function getYearGpa(year) {
   const courses = getCoursesForYear(year);
-  const graded = courses
-    .map(course => getCourseYearGpa(course))
-    .filter(Boolean);
+  const graded = courses.map(course => getCourseYearGpa(course)).filter(Boolean);
 
-  if (!graded.length) {
-    return { weighted: 0, unweighted: 0 };
-  }
+  if (!graded.length) return { weighted: 0, unweighted: 0 };
 
   return {
     unweighted: graded.reduce((sum, item) => sum + item.base, 0) / graded.length,
@@ -166,17 +270,12 @@ function getYearGpa(year) {
 }
 
 function getCumulativeGpa() {
-  const yearly = SCHOOL_YEARS
-    .map(year => {
-      const gpa = getYearGpa(year);
-      const hasCourses = getCoursesForYear(year).length > 0;
-      return hasCourses ? gpa : null;
-    })
-    .filter(Boolean);
+  const yearly = SCHOOL_YEARS.map(year => {
+    const hasCourses = getCoursesForYear(year).length > 0;
+    return hasCourses ? getYearGpa(year) : null;
+  }).filter(Boolean);
 
-  if (!yearly.length) {
-    return { weighted: 0, unweighted: 0 };
-  }
+  if (!yearly.length) return { weighted: 0, unweighted: 0 };
 
   return {
     unweighted: yearly.reduce((sum, item) => sum + item.unweighted, 0) / yearly.length,
@@ -184,6 +283,9 @@ function getCumulativeGpa() {
   };
 }
 
+// =========================
+// RENDER HELPERS
+// =========================
 function renderDashboardStats() {
   const currentYear = state.currentYearView;
   const yearGpa = getYearGpa(currentYear);
@@ -214,32 +316,27 @@ function renderQuarterOverview() {
   const target = document.getElementById("dashboardQuarterOverview");
   if (!target) return;
 
-  const year = state.currentYearView;
-  const courses = getCoursesForYear(year);
-
+  const courses = getCoursesForYear(state.currentYearView);
   if (!courses.length) {
     target.innerHTML = `<div class="empty-state">No courses in this school year yet.</div>`;
     return;
   }
 
-  const quarterCards = QUARTERS.map(quarter => {
-    const quarterValues = courses
-      .map(course => getQuarterAverage(course.id, quarter))
-      .filter(avg => avg !== null);
+  target.innerHTML = `
+    <div class="quarter-overview-stack">
+      ${QUARTERS.map(quarter => {
+        const values = courses.map(course => getQuarterAverage(course.id, quarter)).filter(v => v !== null);
+        const avg = values.length ? values.reduce((a, b) => a + b, 0) / values.length : null;
 
-    const avg = quarterValues.length
-      ? quarterValues.reduce((sum, value) => sum + value, 0) / quarterValues.length
-      : null;
-
-    return `
-      <div class="quarter-card">
-        <div class="quarter-title">${quarter}</div>
-        <div class="quarter-sub">${avg !== null ? avg.toFixed(1) + "%" : "No grades yet"}</div>
-      </div>
-    `;
-  }).join("");
-
-  target.innerHTML = `<div class="quarter-overview-stack">${quarterCards}</div>`;
+        return `
+          <div class="quarter-card">
+            <div class="quarter-title">${quarter}</div>
+            <div class="quarter-sub">${avg !== null ? avg.toFixed(1) + "%" : "No grades yet"}</div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
 }
 
 function renderCourseCards(targetId) {
@@ -256,42 +353,21 @@ function renderCourseCards(targetId) {
     <div class="course-stack">
       ${courses.map(course => {
         const yearData = getCourseYearGpa(course);
-        if (!yearData) {
-          return `
-            <div class="course-card">
-              <div class="list-card-row">
-                <div>
-                  <div class="course-name">${course.name}</div>
-                  <div class="course-meta">${course.level} • No year GPA yet</div>
-                </div>
-                <div class="list-card-actions">
-                  <button class="btn btn-neutral btn-sm" onclick="editCourse('${course.id}')">Edit</button>
-                  <button class="btn btn-danger btn-sm" onclick="deleteCourse('${course.id}')">Delete</button>
-                </div>
-              </div>
-              <div class="progress-track"><div class="progress-bar" style="width:0%"></div></div>
-            </div>
-          `;
-        }
-
-        const letterData = getLetterDataFromPercent(yearData.average);
+        const letterData = yearData ? getLetterDataFromPercent(yearData.average) : null;
 
         return `
           <div class="course-card">
-            <div class="list-card-row">
-              <div>
-                <div class="course-name">${course.name}</div>
-                <div class="course-meta">
-                  ${course.level} • ${letterData.label} • ${yearData.base.toFixed(2)} base • ${yearData.weighted.toFixed(2)} weighted
-                </div>
-              </div>
-              <div class="list-card-actions">
-                <button class="btn btn-neutral btn-sm" onclick="editCourse('${course.id}')">Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteCourse('${course.id}')">Delete</button>
-              </div>
+            <div class="course-name">${course.name}</div>
+            <div class="course-meta">
+              ${course.level}
+              ${yearData ? ` • ${letterData.label} • ${yearData.base.toFixed(2)} base • ${yearData.weighted.toFixed(2)} weighted` : " • No year GPA yet"}
             </div>
-            <div class="top-space-sm"><span class="soft-tag">${yearData.average.toFixed(1)}%</span></div>
-            <div class="progress-track"><div class="progress-bar" style="width:${Math.max(3, yearData.average)}%"></div></div>
+            <div class="top-space-sm">
+              <span class="soft-tag">${yearData ? yearData.average.toFixed(1) + "%" : "No grades"}</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-bar" style="width:${yearData ? Math.max(3, yearData.average) : 0}%"></div>
+            </div>
           </div>
         `;
       }).join("")}
@@ -343,12 +419,7 @@ function renderDeadlinePreview() {
 }
 
 function addCalendarEvent(title, date, category) {
-  state.calendarEvents.push({
-    id: crypto.randomUUID(),
-    title,
-    date,
-    category
-  });
+  state.calendarEvents.push({ id: crypto.randomUUID(), title, date, category });
   saveState();
   renderPage();
 }
@@ -357,10 +428,7 @@ function renderCalendar() {
   const target = document.getElementById("calendarGrid");
   if (!target) return;
 
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const firstDay = new Date(calendarYear, calendarMonth, 1);
@@ -393,14 +461,10 @@ function renderCalendar() {
         <div class="calendar-month-title">${monthNames[calendarMonth]} ${calendarYear}</div>
         <button class="btn btn-dark" onclick="changeCalendarMonth(1)">Next</button>
       </div>
-
       <div class="calendar-header">
         ${weekdayNames.map(day => `<div class="calendar-weekday">${day}</div>`).join("")}
       </div>
-
-      <div class="calendar-grid">
-        ${cells.join("")}
-      </div>
+      <div class="calendar-grid">${cells.join("")}</div>
     </div>
   `;
 }
@@ -416,7 +480,6 @@ function changeCalendarMonth(direction) {
     calendarMonth = 0;
     calendarYear += 1;
   }
-
   if (calendarYear < 2026 || (calendarYear === 2026 && calendarMonth < 2)) {
     calendarYear = 2026;
     calendarMonth = 2;
@@ -432,6 +495,7 @@ function renderYearSelectors() {
 
   [dashboardSelector, academicsSelector, courseYear].forEach(select => {
     if (!select) return;
+
     const currentValue = select.id === "courseYear" ? null : state.currentYearView;
 
     select.innerHTML = SCHOOL_YEARS.map(year => `
@@ -460,6 +524,116 @@ function renderYearSelectors() {
   }
 }
 
+function bindCourseTextareaAutosave() {
+  document.querySelectorAll("textarea[data-course-id]").forEach(textarea => {
+    textarea.addEventListener("blur", () => {
+      const course = state.courses.find(c => c.id === textarea.dataset.courseId);
+      if (!course) return;
+      course[textarea.dataset.field] = textarea.value;
+      saveState();
+    });
+  });
+}
+
+function bindExtracurricularAutosave() {
+  document.querySelectorAll("textarea[data-activity-id]").forEach(textarea => {
+    textarea.addEventListener("blur", () => {
+      const activity = state.extracurriculars.find(a => a.id === textarea.dataset.activityId);
+      if (!activity) return;
+      activity[textarea.dataset.activityField] = textarea.value;
+      saveState();
+    });
+  });
+}
+
+function deleteGradeBand(id) {
+  state.settings.gradeScale = state.settings.gradeScale.filter(item => item.id !== id);
+  saveState();
+  renderPage();
+}
+
+function deleteCourseWeight(id) {
+  state.settings.courseWeights = state.settings.courseWeights.filter(item => item.id !== id);
+  saveState();
+  renderPage();
+}
+
+function deleteCourse(id) {
+  state.courses = state.courses.filter(course => course.id !== id);
+  state.assignments = state.assignments.filter(assignment => assignment.courseId !== id);
+  saveState();
+  renderPage();
+}
+
+function deleteAssignment(id) {
+  state.assignments = state.assignments.filter(item => item.id !== id);
+  saveState();
+  renderPage();
+}
+
+function deleteDeadline(id) {
+  state.college.deadlines = state.college.deadlines.filter(item => item.id !== id);
+  saveState();
+  renderPage();
+}
+
+function deleteCollegeSchool(id) {
+  state.college.schools = state.college.schools.filter(item => item.id !== id);
+  saveState();
+  renderPage();
+}
+
+function deleteActivity(id) {
+  state.extracurriculars = state.extracurriculars.filter(item => item.id !== id);
+  saveState();
+  renderPage();
+}
+
+function renderGradeBandList() {
+  const target = document.getElementById("gradeBandList");
+  const countEl = document.getElementById("gradeBandCount");
+  if (!target) return;
+
+  const sorted = getGradeScaleSorted();
+  if (countEl) countEl.textContent = sorted.length;
+
+  target.innerHTML = sorted.map(band => `
+    <div class="list-card">
+      <div class="list-card-row">
+        <div>
+          <div class="list-title">${band.label}</div>
+          <div class="list-sub">Minimum ${Number(band.min).toFixed(1)}% • GPA ${Number(band.gpa).toFixed(2)}</div>
+        </div>
+        <div class="list-card-actions">
+          <button class="btn btn-danger btn-sm" onclick="deleteGradeBand('${band.id}')">Delete</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderCourseWeightList() {
+  const target = document.getElementById("courseWeightList");
+  const countEl = document.getElementById("weightLevelCount");
+  if (!target) return;
+
+  if (countEl) countEl.textContent = state.settings.courseWeights.length;
+
+  target.innerHTML = state.settings.courseWeights.map(item => `
+    <div class="list-card">
+      <div class="list-card-row">
+        <div>
+          <div class="list-title">${item.level}</div>
+          <div class="list-sub">Weight ${Number(item.weight).toFixed(2)}</div>
+        </div>
+        <div class="list-card-actions">
+          <button class="btn btn-danger btn-sm" onclick="deleteCourseWeight('${item.id}')">Delete</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
 function renderSubjectWorkspaces() {
   const target = document.getElementById("subjectWorkspaceList");
   if (!target) return;
@@ -476,11 +650,6 @@ function renderSubjectWorkspaces() {
         const yearData = getCourseYearGpa(course);
         const courseAssignments = getAssignmentsForCourse(course.id).sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        const quarterBadges = QUARTERS.map(quarter => {
-          const avg = getQuarterAverage(course.id, quarter);
-          return `<span class="soft-tag">${quarter}: ${avg !== null ? avg.toFixed(1) + "%" : "—"}</span>`;
-        }).join("");
-
         return `
           <div class="subject-card">
             <div class="subject-top">
@@ -491,11 +660,15 @@ function renderSubjectWorkspaces() {
                   ${yearData ? ` • Year Avg ${yearData.average.toFixed(1)}% • ${yearData.weighted.toFixed(2)} weighted GPA` : " • No year GPA yet"}
                 </div>
               </div>
-              <div class="hero-mini-meta">${quarterBadges}</div>
+              <div class="hero-mini-meta">
+                ${QUARTERS.map(quarter => {
+                  const avg = getQuarterAverage(course.id, quarter);
+                  return `<span class="soft-tag">${quarter}: ${avg !== null ? avg.toFixed(1) + "%" : "—"}</span>`;
+                }).join("")}
+              </div>
             </div>
 
             <div class="list-card-actions">
-              <button class="btn btn-neutral btn-sm" onclick="editCourse('${course.id}')">Edit Course</button>
               <button class="btn btn-danger btn-sm" onclick="deleteCourse('${course.id}')">Delete Course</button>
             </div>
 
@@ -545,6 +718,7 @@ function renderSubjectWorkspaces() {
                       ? courseAssignments.map(item => {
                           const percent = (item.score / item.total) * 100;
                           const letter = getLetterDataFromPercent(percent).label;
+
                           return `
                             <div class="assignment-row">
                               <div>${item.name}</div>
@@ -554,7 +728,6 @@ function renderSubjectWorkspaces() {
                               <div>${letter}</div>
                             </div>
                             <div class="list-card-actions top-space-sm">
-                              <button class="btn btn-neutral btn-sm" onclick="editAssignment('${item.id}')">Edit</button>
                               <button class="btn btn-danger btn-sm" onclick="deleteAssignment('${item.id}')">Delete</button>
                             </div>
                           `;
@@ -574,49 +747,53 @@ function renderSubjectWorkspaces() {
   bindCourseTextareaAutosave();
 }
 
-function bindSubjectForms() {
-  const forms = document.querySelectorAll(".subject-form-inline");
-  forms.forEach(form => {
-    form.addEventListener("submit", event => {
-      event.preventDefault();
-      const courseId = form.getAttribute("data-course-id");
-      const name = form.assignmentName.value.trim();
-      const quarter = form.assignmentQuarter.value;
-      const score = form.assignmentScore.value;
-      const total = form.assignmentTotal.value;
-      const date = form.assignmentDate.value;
+function renderDeadlines() {
+  const target = document.getElementById("deadlineList");
+  if (!target) return;
 
-      if (!courseId || !name || !quarter || !score || !total || !date) return;
+  const sorted = [...state.college.deadlines].sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (!sorted.length) {
+    target.innerHTML = `<div class="empty-state">No deadlines added yet.</div>`;
+    return;
+  }
 
-      state.assignments.push({
-        id: crypto.randomUUID(),
-        courseId,
-        name,
-        quarter,
-        score: Number(score),
-        total: Number(total),
-        date
-      });
-
-      saveState();
-      renderPage();
-      form.reset();
-    });
-  });
+  target.innerHTML = sorted.map(item => `
+    <div class="list-card">
+      <div class="list-card-row">
+        <div>
+          <div class="list-title">${item.school}</div>
+          <div class="list-sub">${item.type} • ${item.date}</div>
+        </div>
+        <div class="list-card-actions">
+          <button class="btn btn-danger btn-sm" onclick="deleteDeadline('${item.id}')">Delete</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
 }
 
-function bindCourseTextareaAutosave() {
-  const textareas = document.querySelectorAll("textarea[data-course-id]");
-  textareas.forEach(textarea => {
-    textarea.addEventListener("blur", () => {
-      const courseId = textarea.getAttribute("data-course-id");
-      const field = textarea.getAttribute("data-field");
-      const course = state.courses.find(c => c.id === courseId);
-      if (!course || !field) return;
-      course[field] = textarea.value;
-      saveState();
-    });
-  });
+function renderCollegeList() {
+  const target = document.getElementById("collegeList");
+  if (!target) return;
+
+  if (!state.college.schools.length) {
+    target.innerHTML = `<div class="empty-state">No schools added yet.</div>`;
+    return;
+  }
+
+  target.innerHTML = state.college.schools.map(item => `
+    <div class="list-card">
+      <div class="list-card-row">
+        <div>
+          <div class="list-title">${item.name}</div>
+          <div class="list-sub">${item.major} • ${item.category}</div>
+        </div>
+        <div class="list-card-actions">
+          <button class="btn btn-danger btn-sm" onclick="deleteCollegeSchool('${item.id}')">Delete</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
 }
 
 function renderExtracurriculars() {
@@ -644,7 +821,6 @@ function renderExtracurriculars() {
               <div class="extracurricular-sub">${activity.category || "Activity"}</div>
             </div>
             <div class="list-card-actions">
-              <button class="btn btn-neutral btn-sm" onclick="editActivity('${activity.id}')">Edit</button>
               <button class="btn btn-danger btn-sm" onclick="deleteActivity('${activity.id}')">Delete</button>
             </div>
           </div>
@@ -652,32 +828,32 @@ function renderExtracurriculars() {
           <div class="extracurricular-columns">
             <div class="extracurricular-column">
               <div class="extracurricular-label">Description</div>
-              <textarea data-activity-id="${activity.id}" data-activity-field="description" placeholder="What is this activity and what do you do in it?">${activity.description || ""}</textarea>
+              <textarea data-activity-id="${activity.id}" data-activity-field="description">${activity.description || ""}</textarea>
 
               <div class="extracurricular-label">Accomplishments</div>
-              <textarea data-activity-id="${activity.id}" data-activity-field="accomplishments" placeholder="Awards, initiatives, projects, recognitions...">${activity.accomplishments || ""}</textarea>
+              <textarea data-activity-id="${activity.id}" data-activity-field="accomplishments">${activity.accomplishments || ""}</textarea>
 
               <div class="extracurricular-label">Impact</div>
-              <textarea data-activity-id="${activity.id}" data-activity-field="impact" placeholder="Metrics, outcomes, people reached, changes made...">${activity.impact || ""}</textarea>
+              <textarea data-activity-id="${activity.id}" data-activity-field="impact">${activity.impact || ""}</textarea>
             </div>
 
             <div class="extracurricular-column">
               <div class="extracurricular-label">Leadership</div>
-              <textarea data-activity-id="${activity.id}" data-activity-field="leadership" placeholder="Leadership roles, initiative, direction...">${activity.leadership || ""}</textarea>
+              <textarea data-activity-id="${activity.id}" data-activity-field="leadership">${activity.leadership || ""}</textarea>
 
               <div class="extracurricular-label">Goals</div>
-              <textarea data-activity-id="${activity.id}" data-activity-field="goals" placeholder="What do you want to build or improve next?">${activity.goals || ""}</textarea>
+              <textarea data-activity-id="${activity.id}" data-activity-field="goals">${activity.goals || ""}</textarea>
 
               <div class="extracurricular-label">Reminders</div>
-              <textarea data-activity-id="${activity.id}" data-activity-field="reminders" placeholder="Meetings, deadlines, next steps...">${activity.reminders || ""}</textarea>
+              <textarea data-activity-id="${activity.id}" data-activity-field="reminders">${activity.reminders || ""}</textarea>
             </div>
 
             <div class="extracurricular-column">
               <div class="extracurricular-label">Resume Bullet Ideas</div>
-              <textarea data-activity-id="${activity.id}" data-activity-field="resumeIdeas" placeholder="Strong bullet-point ideas...">${activity.resumeIdeas || ""}</textarea>
+              <textarea data-activity-id="${activity.id}" data-activity-field="resumeIdeas">${activity.resumeIdeas || ""}</textarea>
 
               <div class="extracurricular-label">Essay / Supplement Angles</div>
-              <textarea data-activity-id="${activity.id}" data-activity-field="essayIdeas" placeholder="Themes, qualities, and insights this activity shows...">${activity.essayIdeas || ""}</textarea>
+              <textarea data-activity-id="${activity.id}" data-activity-field="essayIdeas">${activity.essayIdeas || ""}</textarea>
             </div>
           </div>
         </div>
@@ -688,232 +864,9 @@ function renderExtracurriculars() {
   bindExtracurricularAutosave();
 }
 
-function bindExtracurricularAutosave() {
-  const textareas = document.querySelectorAll("textarea[data-activity-id]");
-  textareas.forEach(textarea => {
-    textarea.addEventListener("blur", () => {
-      const activityId = textarea.getAttribute("data-activity-id");
-      const field = textarea.getAttribute("data-activity-field");
-      const activity = state.extracurriculars.find(a => a.id === activityId);
-      if (!activity || !field) return;
-      activity[field] = textarea.value;
-      saveState();
-    });
-  });
-}
-
-function addActivity(title, category) {
-  state.extracurriculars.push({
-    id: crypto.randomUUID(),
-    title,
-    category,
-    description: "",
-    accomplishments: "",
-    impact: "",
-    leadership: "",
-    goals: "",
-    reminders: "",
-    resumeIdeas: "",
-    essayIdeas: ""
-  });
-  saveState();
-  renderPage();
-}
-
-function deleteGradeBand(id) {
-  state.settings.gradeScale = state.settings.gradeScale.filter(item => item.id !== id);
-  saveState();
-  renderPage();
-}
-
-function deleteCourseWeight(id) {
-  state.settings.courseWeights = state.settings.courseWeights.filter(item => item.id !== id);
-  saveState();
-  renderPage();
-}
-
-function deleteCourse(id) {
-  state.courses = state.courses.filter(course => course.id !== id);
-  state.assignments = state.assignments.filter(assignment => assignment.courseId !== id);
-  saveState();
-  renderPage();
-}
-
-function editCourse(id) {
-  const course = state.courses.find(item => item.id === id);
-  if (!course) return;
-
-  const newName = prompt("Edit course name:", course.name);
-  if (newName === null) return;
-
-  const newLevel = prompt("Edit course level:", course.level);
-  if (newLevel === null) return;
-
-  course.name = newName.trim() || course.name;
-  course.level = newLevel.trim() || course.level;
-
-  saveState();
-  renderPage();
-}
-
-function deleteAssignment(id) {
-  state.assignments = state.assignments.filter(item => item.id !== id);
-  saveState();
-  renderPage();
-}
-
-function editAssignment(id) {
-  const assignment = state.assignments.find(item => item.id === id);
-  if (!assignment) return;
-
-  const newName = prompt("Edit assignment name:", assignment.name);
-  if (newName === null) return;
-
-  const newQuarter = prompt("Edit quarter (Q1, Q2, Q3, Q4):", assignment.quarter);
-  if (newQuarter === null) return;
-
-  const newScore = prompt("Edit score earned:", assignment.score);
-  if (newScore === null) return;
-
-  const newTotal = prompt("Edit points possible:", assignment.total);
-  if (newTotal === null) return;
-
-  const newDate = prompt("Edit date (YYYY-MM-DD):", assignment.date);
-  if (newDate === null) return;
-
-  assignment.name = newName.trim() || assignment.name;
-  assignment.quarter = newQuarter.trim() || assignment.quarter;
-  assignment.score = Number(newScore) || assignment.score;
-  assignment.total = Number(newTotal) || assignment.total;
-  assignment.date = newDate.trim() || assignment.date;
-
-  saveState();
-  renderPage();
-}
-
-function deleteDeadline(id) {
-  state.college.deadlines = state.college.deadlines.filter(item => item.id !== id);
-  saveState();
-  renderPage();
-}
-
-function editDeadline(id) {
-  const deadline = state.college.deadlines.find(item => item.id === id);
-  if (!deadline) return;
-
-  const newSchool = prompt("Edit school name:", deadline.school);
-  if (newSchool === null) return;
-
-  const newType = prompt("Edit deadline type:", deadline.type);
-  if (newType === null) return;
-
-  const newDate = prompt("Edit deadline date (YYYY-MM-DD):", deadline.date);
-  if (newDate === null) return;
-
-  deadline.school = newSchool.trim() || deadline.school;
-  deadline.type = newType.trim() || deadline.type;
-  deadline.date = newDate.trim() || deadline.date;
-
-  saveState();
-  renderPage();
-}
-
-function deleteCollegeSchool(id) {
-  state.college.schools = state.college.schools.filter(item => item.id !== id);
-  saveState();
-  renderPage();
-}
-
-function editCollegeSchool(id) {
-  const school = state.college.schools.find(item => item.id === id);
-  if (!school) return;
-
-  const newName = prompt("Edit college name:", school.name);
-  if (newName === null) return;
-
-  const newMajor = prompt("Edit major / program:", school.major);
-  if (newMajor === null) return;
-
-  const newCategory = prompt("Edit category (Reach, Target, Likely):", school.category);
-  if (newCategory === null) return;
-
-  school.name = newName.trim() || school.name;
-  school.major = newMajor.trim() || school.major;
-  school.category = newCategory.trim() || school.category;
-
-  saveState();
-  renderPage();
-}
-
-function deleteActivity(id) {
-  state.extracurriculars = state.extracurriculars.filter(item => item.id !== id);
-  saveState();
-  renderPage();
-}
-
-function editActivity(id) {
-  const activity = state.extracurriculars.find(item => item.id === id);
-  if (!activity) return;
-
-  const newTitle = prompt("Edit activity title:", activity.title);
-  if (newTitle === null) return;
-
-  const newCategory = prompt("Edit activity category:", activity.category);
-  if (newCategory === null) return;
-
-  activity.title = newTitle.trim() || activity.title;
-  activity.category = newCategory.trim() || activity.category;
-
-  saveState();
-  renderPage();
-}
-
-function renderGradeBandList() {
-  const target = document.getElementById("gradeBandList");
-  const countEl = document.getElementById("gradeBandCount");
-  if (!target) return;
-
-  const sorted = getGradeScaleSorted();
-
-  if (countEl) countEl.textContent = sorted.length;
-
-  target.innerHTML = sorted.map(band => `
-    <div class="list-card">
-      <div class="list-card-row">
-        <div>
-          <div class="list-title">${band.label}</div>
-          <div class="list-sub">Minimum ${Number(band.min).toFixed(1)}% • GPA ${Number(band.gpa).toFixed(2)}</div>
-        </div>
-        <div class="list-card-actions">
-          <button class="btn btn-danger btn-sm" onclick="deleteGradeBand('${band.id}')">Delete</button>
-        </div>
-      </div>
-    </div>
-  `).join("");
-}
-
-function renderCourseWeightList() {
-  const target = document.getElementById("courseWeightList");
-  const countEl = document.getElementById("weightLevelCount");
-  if (!target) return;
-
-  if (countEl) countEl.textContent = state.settings.courseWeights.length;
-
-  target.innerHTML = state.settings.courseWeights.map(item => `
-    <div class="list-card">
-      <div class="list-card-row">
-        <div>
-          <div class="list-title">${item.level}</div>
-          <div class="list-sub">Weight ${Number(item.weight).toFixed(2)}</div>
-        </div>
-        <div class="list-card-actions">
-          <button class="btn btn-danger btn-sm" onclick="deleteCourseWeight('${item.id}')">Delete</button>
-        </div>
-      </div>
-    </div>
-  `).join("");
-}
-
+// =========================
+// FORM BINDING
+// =========================
 function bindForms() {
   const courseForm = document.getElementById("courseForm");
   if (courseForm) {
@@ -926,6 +879,7 @@ function bindForms() {
 
     courseForm.addEventListener("submit", e => {
       e.preventDefault();
+
       const schoolYear = document.getElementById("courseYear").value;
       const name = document.getElementById("courseName").value.trim();
       const level = document.getElementById("courseLevel").value;
@@ -953,16 +907,12 @@ function bindForms() {
   if (deadlineForm) {
     deadlineForm.addEventListener("submit", e => {
       e.preventDefault();
-      const school = document.getElementById("deadlineSchool").value.trim();
-      const type = document.getElementById("deadlineType").value.trim();
-      const date = document.getElementById("deadlineDate").value;
-      if (!school || !type || !date) return;
 
       state.college.deadlines.push({
         id: crypto.randomUUID(),
-        school,
-        type,
-        date
+        school: document.getElementById("deadlineSchool").value.trim(),
+        type: document.getElementById("deadlineType").value.trim(),
+        date: document.getElementById("deadlineDate").value
       });
 
       saveState();
@@ -975,16 +925,12 @@ function bindForms() {
   if (collegeListForm) {
     collegeListForm.addEventListener("submit", e => {
       e.preventDefault();
-      const name = document.getElementById("collegeName").value.trim();
-      const major = document.getElementById("collegeMajor").value.trim();
-      const category = document.getElementById("collegeCategory").value;
-      if (!name || !major || !category) return;
 
       state.college.schools.push({
         id: crypto.randomUUID(),
-        name,
-        major,
-        category
+        name: document.getElementById("collegeName").value.trim(),
+        major: document.getElementById("collegeMajor").value.trim(),
+        category: document.getElementById("collegeCategory").value
       });
 
       saveState();
@@ -997,12 +943,13 @@ function bindForms() {
   if (calendarEventForm) {
     calendarEventForm.addEventListener("submit", e => {
       e.preventDefault();
-      const title = document.getElementById("calendarEventTitle").value.trim();
-      const date = document.getElementById("calendarEventDate").value;
-      const category = document.getElementById("calendarEventCategory").value.trim();
-      if (!title || !date || !category) return;
 
-      addCalendarEvent(title, date, category);
+      addCalendarEvent(
+        document.getElementById("calendarEventTitle").value.trim(),
+        document.getElementById("calendarEventDate").value,
+        document.getElementById("calendarEventCategory").value.trim()
+      );
+
       calendarEventForm.reset();
     });
   }
@@ -1011,11 +958,23 @@ function bindForms() {
   if (activityForm) {
     activityForm.addEventListener("submit", e => {
       e.preventDefault();
-      const title = document.getElementById("activityTitle").value.trim();
-      const category = document.getElementById("activityCategory").value.trim();
-      if (!title || !category) return;
 
-      addActivity(title, category);
+      state.extracurriculars.push({
+        id: crypto.randomUUID(),
+        title: document.getElementById("activityTitle").value.trim(),
+        category: document.getElementById("activityCategory").value.trim(),
+        description: "",
+        accomplishments: "",
+        impact: "",
+        leadership: "",
+        goals: "",
+        reminders: "",
+        resumeIdeas: "",
+        essayIdeas: ""
+      });
+
+      saveState();
+      renderPage();
       activityForm.reset();
     });
   }
@@ -1024,18 +983,14 @@ function bindForms() {
   if (gradeBandForm) {
     gradeBandForm.addEventListener("submit", e => {
       e.preventDefault();
+
       const label = document.getElementById("bandLabel").value.trim();
       const min = Number(document.getElementById("bandMin").value);
       const gpa = Number(document.getElementById("bandGpa").value);
       if (!label || Number.isNaN(min) || Number.isNaN(gpa)) return;
 
       state.settings.gradeScale = state.settings.gradeScale.filter(item => item.label !== label);
-      state.settings.gradeScale.push({
-        id: crypto.randomUUID(),
-        label,
-        min,
-        gpa
-      });
+      state.settings.gradeScale.push({ id: crypto.randomUUID(), label, min, gpa });
 
       saveState();
       renderPage();
@@ -1047,16 +1002,13 @@ function bindForms() {
   if (courseWeightForm) {
     courseWeightForm.addEventListener("submit", e => {
       e.preventDefault();
+
       const level = document.getElementById("weightLevel").value.trim();
       const weight = Number(document.getElementById("weightValue").value);
       if (!level || Number.isNaN(weight)) return;
 
       state.settings.courseWeights = state.settings.courseWeights.filter(item => item.level !== level);
-      state.settings.courseWeights.push({
-        id: crypto.randomUUID(),
-        level,
-        weight
-      });
+      state.settings.courseWeights.push({ id: crypto.randomUUID(), level, weight });
 
       saveState();
       renderPage();
@@ -1068,77 +1020,54 @@ function bindForms() {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener("blur", () => {
-        if (document.getElementById("personalStatement")) state.college.personalStatement = document.getElementById("personalStatement").value;
-        if (document.getElementById("extendedResume")) state.college.extendedResume = document.getElementById("extendedResume").value;
-        if (document.getElementById("supplementBank")) state.college.supplementBank = document.getElementById("supplementBank").value;
-        if (document.getElementById("applicationChecklist")) state.college.applicationChecklist = document.getElementById("applicationChecklist").value;
-        if (document.getElementById("collegeMaterials")) state.college.collegeMaterials = document.getElementById("collegeMaterials").value;
+        state.college[id] = el.value;
         saveState();
       });
     }
   });
 }
 
-function fillCollegeTextareas() {
-  const ids = ["personalStatement", "extendedResume", "supplementBank", "applicationChecklist", "collegeMaterials"];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.value = state.college[id] || "";
+function bindSubjectForms() {
+  document.querySelectorAll(".subject-form-inline").forEach(form => {
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      const courseId = form.getAttribute("data-course-id");
+      const name = form.assignmentName.value.trim();
+      const quarter = form.assignmentQuarter.value;
+      const score = form.assignmentScore.value;
+      const total = form.assignmentTotal.value;
+      const date = form.assignmentDate.value;
+
+      if (!courseId || !name || !quarter || !score || !total || !date) return;
+
+      state.assignments.push({
+        id: crypto.randomUUID(),
+        courseId,
+        name,
+        quarter,
+        score: Number(score),
+        total: Number(total),
+        date
+      });
+
+      saveState();
+      renderPage();
+      form.reset();
+    });
   });
 }
 
-function renderDeadlines() {
-  const target = document.getElementById("deadlineList");
-  if (!target) return;
-
-  const sorted = [...state.college.deadlines].sort((a, b) => new Date(a.date) - new Date(b.date));
-  if (!sorted.length) {
-    target.innerHTML = `<div class="empty-state">No deadlines added yet.</div>`;
-    return;
-  }
-
-  target.innerHTML = sorted.map(item => `
-    <div class="list-card">
-      <div class="list-card-row">
-        <div>
-          <div class="list-title">${item.school}</div>
-          <div class="list-sub">${item.type} • ${item.date}</div>
-        </div>
-        <div class="list-card-actions">
-          <button class="btn btn-neutral btn-sm" onclick="editDeadline('${item.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteDeadline('${item.id}')">Delete</button>
-        </div>
-      </div>
-    </div>
-  `).join("");
+function fillCollegeTextareas() {
+  ["personalStatement", "extendedResume", "supplementBank", "applicationChecklist", "collegeMaterials"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = state.college[id] || "";
+  });
 }
 
-function renderCollegeList() {
-  const target = document.getElementById("collegeList");
-  if (!target) return;
-
-  if (!state.college.schools.length) {
-    target.innerHTML = `<div class="empty-state">No schools added yet.</div>`;
-    return;
-  }
-
-  target.innerHTML = state.college.schools.map(item => `
-    <div class="list-card">
-      <div class="list-card-row">
-        <div>
-          <div class="list-title">${item.name}</div>
-          <div class="list-sub">${item.major} • ${item.category}</div>
-        </div>
-        <div class="list-card-actions">
-          <button class="btn btn-neutral btn-sm" onclick="editCollegeSchool('${item.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCollegeSchool('${item.id}')">Delete</button>
-        </div>
-      </div>
-    </div>
-  `).join("");
-}
-
+// =========================
+// SEED / RESET
+// =========================
 function seedDemoData() {
   state = clone(defaultState);
   state.currentYearView = "11th Grade";
@@ -1221,6 +1150,9 @@ function resetAllData() {
   renderPage();
 }
 
+// =========================
+// MAIN RENDER
+// =========================
 function renderPage() {
   renderYearSelectors();
   renderDashboardStats();
@@ -1237,7 +1169,22 @@ function renderPage() {
   fillCollegeTextareas();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+// =========================
+// STARTUP
+// =========================
+document.addEventListener("DOMContentLoaded", async () => {
+  const session = await requireAuth();
+
+  bindAuthForms();
+
+  if (document.body.dataset.page === "auth") {
+    return;
+  }
+
+  if (!session) {
+    return;
+  }
+
   bindForms();
   renderPage();
 });
