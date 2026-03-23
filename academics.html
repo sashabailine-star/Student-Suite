@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Suite — Academics</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="academics">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-topbar"></div>
+
+      <div class="brand-block">
+        <div class="eyebrow">Academic, College & Life Platform</div>
+        <h1 class="brand-title">Student Suite</h1>
+        <p class="brand-copy">
+          A polished editorial dashboard for academics, college planning, activities, and organization.
+        </p>
+      </div>
+
+      <nav class="nav">
+        <a class="nav-link" href="index.html">Dashboard</a>
+        <a class="nav-link active" href="academics.html">Academics</a>
+        <a class="nav-link" href="college.html">College Hub</a>
+        <a class="nav-link" href="extracurriculars.html">Extracurriculars</a>
+        <a class="nav-link" href="settings.html">Settings</a>
+      </nav>
+
+      <div class="sidebar-note">
+        <div class="note-label">Academics</div>
+        <div class="note-value">Assignments are organized by school year and quarter.</div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="hero-header">
+        <div>
+          <div class="eyebrow">Academics</div>
+          <h2 class="page-title">Subject Workspaces</h2>
+          <p class="page-subtitle">
+            Track quarter grades, class assignments, notes, reminders, and yearly GPA by subject.
+          </p>
+        </div>
+      </header>
+
+      <section class="two-column">
+        <article class="panel">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Add Course</div>
+              <h3 class="section-title">New Subject</h3>
+            </div>
+          </div>
+
+          <form id="courseForm" class="editorial-form">
+            <select id="courseYear" required></select>
+            <input type="text" id="courseName" placeholder="Course name" required />
+            <select id="courseLevel" required></select>
+            <button type="submit" class="btn btn-full">Add Subject</button>
+          </form>
+        </article>
+
+        <article class="panel">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Filter</div>
+              <h3 class="section-title">View Year</h3>
+            </div>
+          </div>
+
+          <div class="year-selector-inline">
+            <select id="academicsYearSelector"></select>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Workspace</div>
+            <h3 class="section-title">Subjects</h3>
+          </div>
+        </div>
+
+        <div id="subjectWorkspaceList"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

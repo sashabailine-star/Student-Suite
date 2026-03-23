@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Suite — Extracurriculars</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="extracurriculars">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-topbar"></div>
+
+      <div class="brand-block">
+        <div class="eyebrow">Academic, College & Life Platform</div>
+        <h1 class="brand-title">Student Suite</h1>
+        <p class="brand-copy">
+          A polished editorial dashboard for academics, college planning, activities, and organization.
+        </p>
+      </div>
+
+      <nav class="nav">
+        <a class="nav-link" href="index.html">Dashboard</a>
+        <a class="nav-link" href="academics.html">Academics</a>
+        <a class="nav-link" href="college.html">College Hub</a>
+        <a class="nav-link active" href="extracurriculars.html">Extracurriculars</a>
+        <a class="nav-link" href="settings.html">Settings</a>
+      </nav>
+
+      <div class="sidebar-note">
+        <div class="note-label">Activities</div>
+        <div class="note-value">Track impact, leadership, and application angles.</div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="hero-header">
+        <div>
+          <div class="eyebrow">Extracurriculars</div>
+          <h2 class="page-title">Activities & Impact</h2>
+          <p class="page-subtitle">
+            Add activities and build out full workspaces for each one.
+          </p>
+        </div>
+      </header>
+
+      <section class="two-column">
+        <article class="panel">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Create</div>
+              <h3 class="section-title">Add Activity</h3>
+            </div>
+          </div>
+
+          <form id="activityForm" class="editorial-form">
+            <input type="text" id="activityTitle" placeholder="Activity name" required />
+            <input type="text" id="activityCategory" placeholder="Category (club, internship, research, publication, service)" required />
+            <button type="submit" class="btn btn-full">Add Activity</button>
+          </form>
+        </article>
+
+        <article class="panel">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Overview</div>
+              <h3 class="section-title">Activity Count</h3>
+            </div>
+          </div>
+          <div id="activitySummary"></div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Workspaces</div>
+            <h3 class="section-title">Extracurricular Dashboard</h3>
+          </div>
+        </div>
+
+        <div id="extracurricularList"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

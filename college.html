@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Suite — College Hub</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="college">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-topbar"></div>
+
+      <div class="brand-block">
+        <div class="eyebrow">Academic, College & Life Platform</div>
+        <h1 class="brand-title">Student Suite</h1>
+        <p class="brand-copy">
+          A polished editorial dashboard for academics, college planning, activities, and organization.
+        </p>
+      </div>
+
+      <nav class="nav">
+        <a class="nav-link" href="index.html">Dashboard</a>
+        <a class="nav-link" href="academics.html">Academics</a>
+        <a class="nav-link active" href="college.html">College Hub</a>
+        <a class="nav-link" href="extracurriculars.html">Extracurriculars</a>
+        <a class="nav-link" href="settings.html">Settings</a>
+      </nav>
+
+      <div class="sidebar-note">
+        <div class="note-label">College Hub</div>
+        <div class="note-value">Track schools, writing, deadlines, and your all-high-school GPA.</div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="hero-header hero-header-luxe">
+        <div class="hero-copy">
+          <div class="eyebrow">College Hub</div>
+          <h2 class="page-title">Applications & Materials</h2>
+          <p class="page-subtitle">
+            Keep your writing, school list, deadlines, materials, and cumulative GPA in one elegant place.
+          </p>
+
+          <div class="hero-mini-meta">
+            <span class="hero-pill">Writing</span>
+            <span class="hero-pill">Deadlines</span>
+            <span class="hero-pill">Cumulative GPA</span>
+          </div>
+        </div>
+
+        <div class="hero-side">
+          <div class="hero-quote-card">
+            <div class="hero-quote-label">Application Season</div>
+            <div class="hero-quote-text">Strong systems make strong applications easier to manage.</div>
+          </div>
+        </div>
+      </header>
+
+      <section class="settings-summary-grid">
+        <article class="panel mini-summary-card">
+          <div class="mini-summary-label">Cumulative Weighted GPA</div>
+          <div class="mini-summary-value" id="collegeCumulativeWeighted">0.00</div>
+          <div class="mini-summary-sub">Across all years of high school</div>
+        </article>
+
+        <article class="panel mini-summary-card">
+          <div class="mini-summary-label">Cumulative Unweighted GPA</div>
+          <div class="mini-summary-value" id="collegeCumulativeUnweighted">0.00</div>
+          <div class="mini-summary-sub">Across all years of high school</div>
+        </article>
+
+        <article class="panel mini-summary-card">
+          <div class="mini-summary-label">Schools Tracked</div>
+          <div class="mini-summary-value" id="collegeSchoolCount">0</div>
+          <div class="mini-summary-sub">Saved to your college list</div>
+        </article>
+      </section>
+
+      <section class="college-editorial-grid">
+        <article class="panel college-feature-card">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Writing</div>
+              <h3 class="section-title">Personal Statement</h3>
+            </div>
+          </div>
+          <textarea id="personalStatement" class="big-textarea" placeholder="Draft or paste your personal statement here..."></textarea>
+        </article>
+
+        <article class="panel college-feature-card">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Resume</div>
+              <h3 class="section-title">Extended Resume</h3>
+            </div>
+          </div>
+          <textarea id="extendedResume" class="big-textarea" placeholder="Track activities, impact, leadership, and bullet ideas..."></textarea>
+        </article>
+      </section>
+
+      <section class="college-editorial-grid">
+        <article class="panel college-feature-card">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Supplements</div>
+              <h3 class="section-title">Supplement Bank</h3>
+            </div>
+          </div>
+          <textarea id="supplementBank" class="big-textarea" placeholder="Store supplement drafts and reusable lines..."></textarea>
+        </article>
+
+        <article class="panel college-feature-card">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Checklist</div>
+              <h3 class="section-title">Application Checklist</h3>
+            </div>
+          </div>
+          <textarea id="applicationChecklist" class="big-textarea" placeholder="Track forms, recommendation letters, and tasks..."></textarea>
+        </article>
+      </section>
+
+      <section class="two-column">
+        <article class="panel college-structured-card">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Deadlines</div>
+              <h3 class="section-title">Deadline Tracker</h3>
+            </div>
+          </div>
+
+          <form id="deadlineForm" class="editorial-form">
+            <input type="text" id="deadlineSchool" placeholder="School name" required />
+            <input type="text" id="deadlineType" placeholder="Deadline type" required />
+            <input type="date" id="deadlineDate" required />
+            <button type="submit" class="btn btn-full">Add Deadline</button>
+          </form>
+
+          <div id="deadlineList" class="list-stack top-space"></div>
+        </article>
+
+        <article class="panel college-structured-card">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Schools</div>
+              <h3 class="section-title">College List</h3>
+            </div>
+          </div>
+
+          <form id="collegeListForm" class="editorial-form">
+            <input type="text" id="collegeName" placeholder="College name" required />
+            <input type="text" id="collegeMajor" placeholder="Major / program" required />
+            <select id="collegeCategory" required>
+              <option value="">Choose category</option>
+              <option value="Reach">Reach</option>
+              <option value="Target">Target</option>
+              <option value="Likely">Likely</option>
+            </select>
+            <button type="submit" class="btn btn-full">Add School</button>
+          </form>
+
+          <div id="collegeList" class="list-stack top-space"></div>
+        </article>
+      </section>
+
+      <section class="panel college-feature-card">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Materials</div>
+            <h3 class="section-title">Application Materials</h3>
+          </div>
+        </div>
+        <textarea id="collegeMaterials" class="big-textarea" placeholder="List folders, links, note locations, or anything else you want to keep track of..."></textarea>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

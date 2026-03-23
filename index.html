@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Suite — Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="dashboard">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-topbar"></div>
+
+      <div class="brand-block">
+        <div class="eyebrow">Academic, College & Life Platform</div>
+        <h1 class="brand-title">Student Suite</h1>
+        <p class="brand-copy">
+          A polished editorial dashboard for academics, college planning, activities, and organization.
+        </p>
+      </div>
+
+      <nav class="nav">
+        <a class="nav-link active" href="index.html">Dashboard</a>
+        <a class="nav-link" href="academics.html">Academics</a>
+        <a class="nav-link" href="college.html">College Hub</a>
+        <a class="nav-link" href="extracurriculars.html">Extracurriculars</a>
+        <a class="nav-link" href="settings.html">Settings</a>
+      </nav>
+
+      <div class="sidebar-note">
+        <div class="note-label">Overview</div>
+        <div class="note-value">Built around quarters, annual GPA, and cumulative GPA.</div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="hero-header hero-header-luxe">
+        <div class="hero-copy">
+          <div class="eyebrow">Overview</div>
+          <h2 class="page-title">Dashboard</h2>
+          <p class="page-subtitle">
+            Annual and cumulative GPA, quarter performance, deadlines, and calendar in one refined workspace.
+          </p>
+
+          <div class="hero-mini-meta">
+            <span class="hero-pill">Quarter Tracking</span>
+            <span class="hero-pill">Annual GPA</span>
+            <span class="hero-pill">Cumulative GPA</span>
+          </div>
+        </div>
+
+        <div class="hero-side">
+          <div class="hero-quote-card">
+            <div class="hero-quote-label">Focus</div>
+            <div class="hero-quote-text">Strong systems make grades easier to understand.</div>
+          </div>
+
+          <div class="header-actions">
+            <button class="btn btn-dark" onclick="seedDemoData()">Load Demo Data</button>
+            <button class="btn" onclick="resetAllData()">Reset All</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="year-selector-bar panel">
+        <div class="section-head compact-head">
+          <div>
+            <div class="eyebrow">School Year</div>
+            <h3 class="section-title">Current View</h3>
+          </div>
+        </div>
+
+        <div class="year-selector-inline">
+          <select id="dashboardYearSelector"></select>
+        </div>
+      </section>
+
+      <section class="stats-grid five-up">
+        <article class="panel stat-panel">
+          <div class="stat-icon">✦</div>
+          <div class="stat-label">Year Weighted GPA</div>
+          <div class="stat-value" id="yearWeightedGpa">0.00</div>
+        </article>
+
+        <article class="panel stat-panel">
+          <div class="stat-icon">✎</div>
+          <div class="stat-label">Year Unweighted GPA</div>
+          <div class="stat-value" id="yearUnweightedGpa">0.00</div>
+        </article>
+
+        <article class="panel stat-panel">
+          <div class="stat-icon">◆</div>
+          <div class="stat-label">Cumulative Weighted</div>
+          <div class="stat-value" id="cumulativeWeightedGpa">0.00</div>
+        </article>
+
+        <article class="panel stat-panel">
+          <div class="stat-icon">○</div>
+          <div class="stat-label">Cumulative Unweighted</div>
+          <div class="stat-value" id="cumulativeUnweightedGpa">0.00</div>
+        </article>
+
+        <article class="panel stat-panel">
+          <div class="stat-icon">📘</div>
+          <div class="stat-label">Courses This Year</div>
+          <div class="stat-value" id="courseCount">0</div>
+        </article>
+      </section>
+
+      <section class="two-column">
+        <article class="panel">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Quarter Overview</div>
+              <h3 class="section-title">Quarter Averages</h3>
+            </div>
+          </div>
+          <div id="dashboardQuarterOverview"></div>
+        </article>
+
+        <article class="panel">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Performance</div>
+              <h3 class="section-title">Course Year Averages</h3>
+            </div>
+          </div>
+          <div id="dashboardCourseAverages"></div>
+        </article>
+      </section>
+
+      <section class="two-column">
+        <article class="panel">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Calendar</div>
+              <h3 class="section-title">This Month</h3>
+            </div>
+          </div>
+          <div id="calendarGrid"></div>
+        </article>
+
+        <article class="panel">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Deadlines</div>
+              <h3 class="section-title">Upcoming Deadlines</h3>
+            </div>
+          </div>
+          <div id="deadlinePreview"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

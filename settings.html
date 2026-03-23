@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Suite — Settings</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-page="settings">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-topbar"></div>
+
+      <div class="brand-block">
+        <div class="eyebrow">Academic, College & Life Platform</div>
+        <h1 class="brand-title">Student Suite</h1>
+        <p class="brand-copy">
+          A polished editorial dashboard for academics, college planning, activities, and organization.
+        </p>
+      </div>
+
+      <nav class="nav">
+        <a class="nav-link" href="index.html">Dashboard</a>
+        <a class="nav-link" href="academics.html">Academics</a>
+        <a class="nav-link" href="college.html">College Hub</a>
+        <a class="nav-link" href="extracurriculars.html">Extracurriculars</a>
+        <a class="nav-link active" href="settings.html">Settings</a>
+      </nav>
+
+      <div class="sidebar-note">
+        <div class="note-label">Settings</div>
+        <div class="note-value">Customize the GPA logic so the dashboard reflects your actual school system.</div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="hero-header hero-header-luxe">
+        <div class="hero-copy">
+          <div class="eyebrow">Settings</div>
+          <h2 class="page-title">GPA System & Rules</h2>
+          <p class="page-subtitle">
+            Build a grading model that matches your school by editing grade bands, course weighting, and quarter structure.
+          </p>
+
+          <div class="hero-mini-meta">
+            <span class="hero-pill">Custom GPA Scale</span>
+            <span class="hero-pill">Course Weighting</span>
+            <span class="hero-pill">Quarter-Based Tracking</span>
+          </div>
+        </div>
+
+        <div class="hero-side">
+          <div class="hero-quote-card">
+            <div class="hero-quote-label">Why this matters</div>
+            <div class="hero-quote-text">A good GPA dashboard is only as accurate as the system behind it.</div>
+          </div>
+        </div>
+      </header>
+
+      <section class="settings-summary-grid">
+        <article class="panel mini-summary-card">
+          <div class="mini-summary-label">Grade Bands</div>
+          <div class="mini-summary-value" id="gradeBandCount">0</div>
+          <div class="mini-summary-sub">Custom GPA cutoffs saved</div>
+        </article>
+
+        <article class="panel mini-summary-card">
+          <div class="mini-summary-label">Course Levels</div>
+          <div class="mini-summary-value" id="weightLevelCount">0</div>
+          <div class="mini-summary-sub">Weighting rules available</div>
+        </article>
+
+        <article class="panel mini-summary-card">
+          <div class="mini-summary-label">Quarter Model</div>
+          <div class="mini-summary-value">4</div>
+          <div class="mini-summary-sub">Equal quarter structure</div>
+        </article>
+      </section>
+
+      <section class="two-column">
+        <article class="panel settings-editor-card">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Grade Scale</div>
+              <h3 class="section-title">Custom GPA Bands</h3>
+            </div>
+          </div>
+
+          <p class="settings-helper-text">
+            Add the minimum percentage and GPA value for each grade band your school uses.
+          </p>
+
+          <form id="gradeBandForm" class="editorial-form">
+            <div class="form-grid-3">
+              <input type="text" id="bandLabel" placeholder="Label (A, A-, B+)" required />
+              <input type="number" id="bandMin" placeholder="Minimum %" min="0" max="100" step="0.1" required />
+              <input type="number" id="bandGpa" placeholder="GPA value" min="0" max="10" step="0.01" required />
+            </div>
+            <button type="submit" class="btn btn-full">Add Grade Band</button>
+          </form>
+
+          <div class="settings-list-wrap top-space">
+            <div class="settings-list-label">Saved grade bands</div>
+            <div id="gradeBandList" class="list-stack"></div>
+          </div>
+        </article>
+
+        <article class="panel settings-editor-card">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Course Weighting</div>
+              <h3 class="section-title">Level Weight Rules</h3>
+            </div>
+          </div>
+
+          <p class="settings-helper-text">
+            Set how much extra GPA weight each course level should receive.
+          </p>
+
+          <form id="courseWeightForm" class="editorial-form">
+            <div class="form-grid-2">
+              <input type="text" id="weightLevel" placeholder="Course level (Regular, Honors, AP)" required />
+              <input type="number" id="weightValue" placeholder="Weight value" min="0" max="5" step="0.01" required />
+            </div>
+            <button type="submit" class="btn btn-full">Add / Update Level</button>
+          </form>
+
+          <div class="settings-list-wrap top-space">
+            <div class="settings-list-label">Saved weighting rules</div>
+            <div id="courseWeightList" class="list-stack"></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="two-column">
+        <article class="panel settings-info-card">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Quarter Rules</div>
+              <h3 class="section-title">How GPA Is Calculated</h3>
+            </div>
+          </div>
+
+          <div class="rule-stack">
+            <div class="rule-card">
+              <div class="rule-title">Step 1</div>
+              <div class="rule-copy">Assignments are grouped into Q1, Q2, Q3, and Q4 for each class.</div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-title">Step 2</div>
+              <div class="rule-copy">Each quarter average contributes equally to the yearly course average.</div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-title">Step 3</div>
+              <div class="rule-copy">That yearly course average is converted into base GPA using your custom grade scale.</div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-title">Step 4</div>
+              <div class="rule-copy">Course level weight is added to calculate the weighted GPA for that class.</div>
+            </div>
+
+            <div class="rule-card">
+              <div class="rule-title">Step 5</div>
+              <div class="rule-copy">All yearly course GPAs are averaged into a yearly GPA, then all school years combine into cumulative GPA.</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel settings-info-card">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Calendar</div>
+              <h3 class="section-title">Add Event</h3>
+            </div>
+          </div>
+
+          <p class="settings-helper-text">
+            Add school, college, club, or testing events to the dashboard calendar.
+          </p>
+
+          <form id="calendarEventForm" class="editorial-form">
+            <input type="text" id="calendarEventTitle" placeholder="Event title" required />
+            <input type="date" id="calendarEventDate" min="2026-03-01" required />
+            <input type="text" id="calendarEventCategory" placeholder="Category (school, college, club, test, meeting)" required />
+            <button type="submit" class="btn btn-full">Add Event</button>
+          </form>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
