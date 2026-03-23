@@ -19,13 +19,6 @@ async function logoutUser() {
   window.location.href = "auth.html";
 }
 // =========================
-// SUPABASE CONNECTION
-// =========================
-const SUPABASE_URL = "https://kprlkctuyggqypjqwrey.supabase.co";
-const SUPABASE_KEY = "sb_publishable_w3xLD4D-gk0HQwRCOY7kow_7aa_qLzM";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// =========================
 // APP STATE
 // =========================
 const STORAGE_KEY = "studentSuiteFinalPlatformAuthV1";
