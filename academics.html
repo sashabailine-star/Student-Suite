@@ -32,7 +32,7 @@
         <div>
           <div class="eyebrow">Academics</div>
           <h2>Subject Workspaces</h2>
-          <p>Add courses, set category weights, and organize assignments, notes, and study materials.</p>
+          <p>Track classes, grading categories, course length, assignments, and study materials.</p>
         </div>
       </header>
 
@@ -49,6 +49,12 @@
             <select id="courseYear" required></select>
             <input type="text" id="courseName" placeholder="Course name" required />
             <select id="courseLevel" required></select>
+            <select id="courseDuration" required>
+              <option value="Year">Year Long</option>
+              <option value="Semester">Semester Long</option>
+              <option value="Trimester">Trimester Long</option>
+              <option value="Quarter">Quarter Long</option>
+            </select>
             <button type="submit" class="btn btn-primary">Add Course</button>
           </form>
         </article>
@@ -60,7 +66,6 @@
               <h3>School Year</h3>
             </div>
           </div>
-
           <select id="academicsYearSelector"></select>
         </article>
       </section>
@@ -72,6 +77,7 @@
             <h3>Academic Subjects</h3>
           </div>
         </div>
+
         <div id="subjectWorkspaceList"></div>
       </section>
     </main>

@@ -1,17 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg: #eaf3ff;
+  --bg: #eef5ff;
   --card: #ffffff;
   --text: #11264d;
   --muted: #5f7396;
-  --line: #bfd1ef;
+  --line: #c8d8f3;
   --navy: #173c79;
   --blue: #2f65c8;
-  --blue-soft: #d9e8ff;
+  --blue-soft: #deebff;
   --danger: #b83c3c;
   --danger-soft: #fff1f1;
-  --shadow: 0 16px 34px rgba(17, 38, 77, 0.08);
+  --shadow: 0 14px 30px rgba(17, 38, 77, 0.08);
 }
 
 * {
@@ -63,8 +63,8 @@ textarea {
   border: 1px solid var(--line);
   background: #fff;
   color: var(--text);
-  border-radius: 16px;
-  padding: 14px 16px;
+  border-radius: 14px;
+  padding: 12px 14px;
 }
 
 input:focus,
@@ -77,17 +77,21 @@ textarea:focus {
 
 textarea {
   resize: vertical;
-  min-height: 120px;
+  min-height: 110px;
+  max-height: 220px;
+  overflow-y: auto;
 }
 
 .big-textarea {
   min-height: 180px;
+  max-height: 320px;
+  overflow-y: auto;
 }
 
 .btn {
   border: none;
   border-radius: 999px;
-  padding: 12px 18px;
+  padding: 11px 16px;
   cursor: pointer;
   font-weight: 700;
 }
@@ -110,8 +114,8 @@ textarea {
 }
 
 .btn-sm {
-  padding: 8px 12px;
-  font-size: 0.86rem;
+  padding: 7px 11px;
+  font-size: 0.84rem;
 }
 
 .btn-full {
@@ -121,7 +125,7 @@ textarea {
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--blue);
   font-weight: 700;
   margin-bottom: 8px;
@@ -130,22 +134,22 @@ textarea {
 .app-layout,
 .app-shell {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 245px minmax(0, 1fr);
   min-height: 100vh;
 }
 
 .sidebar {
   background: #edf5ff;
   border-right: 1px solid var(--line);
-  padding: 24px 18px;
+  padding: 22px 16px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   min-height: 100vh;
 }
 
 .brand h1 {
-  font-size: 2.1rem;
+  font-size: 2rem;
 }
 
 .nav {
@@ -155,7 +159,7 @@ textarea {
 
 .nav-link {
   display: block;
-  padding: 12px 14px;
+  padding: 11px 13px;
   border-radius: 999px;
   color: var(--text);
   font-weight: 600;
@@ -174,13 +178,13 @@ textarea {
 
 .main,
 .main-content {
-  padding: 32px;
+  padding: 26px;
   display: grid;
-  gap: 18px;
+  gap: 16px;
   min-width: 0;
   align-content: start;
   width: 100%;
-  max-width: 1240px;
+  max-width: 1200px;
 }
 
 .card,
@@ -189,51 +193,51 @@ textarea {
 .auth-card-inner {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 28px;
-  padding: 22px;
+  border-radius: 24px;
+  padding: 18px;
   box-shadow: var(--shadow);
 }
 
 .pretty-card {
-  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(251,253,255,1) 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(250,252,255,1) 100%);
 }
 
 .section-head {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .section-title,
 .section-head h3 {
-  font-size: 2.15rem;
+  font-size: 1.95rem;
 }
 
 .top-gap,
 .top-space,
 .top-space-sm {
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .hero {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
+  gap: 18px;
   align-items: flex-start;
   flex-wrap: wrap;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 18px;
+  padding-bottom: 16px;
 }
 
 .hero h2,
 .page-title {
-  font-size: 3.35rem;
+  font-size: 3rem;
 }
 
 .hero p,
 .page-subtitle {
   color: var(--muted);
   margin-top: 8px;
-  max-width: 760px;
-  font-size: 1.02rem;
+  max-width: 720px;
+  font-size: 0.98rem;
 }
 
 .hero-actions {
@@ -250,7 +254,7 @@ textarea {
 
 .toolbar-label {
   display: block;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--muted);
   margin-bottom: 6px;
 }
@@ -258,11 +262,11 @@ textarea {
 .stack-form,
 .editorial-form {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .compact-form {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .two-col,
@@ -270,7 +274,7 @@ textarea {
 .auth-two-column {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  gap: 16px;
 }
 
 .row-three {
@@ -282,7 +286,7 @@ textarea {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 16px;
+  gap: 14px;
 }
 
 .stats-grid-three {
@@ -290,11 +294,11 @@ textarea {
 }
 
 .stat-card {
-  min-height: 170px;
+  min-height: 155px;
 }
 
 .stat-label {
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--blue);
@@ -303,9 +307,9 @@ textarea {
 
 .stat-value {
   font-family: "Playfair Display", serif;
-  font-size: 2.7rem;
+  font-size: 2.4rem;
   color: var(--navy);
-  margin: 12px 0 8px;
+  margin: 10px 0 7px;
 }
 
 .stat-sub {
@@ -320,8 +324,8 @@ textarea {
 
 .list-card {
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 14px;
+  border-radius: 16px;
+  padding: 12px;
   background: #fff;
 }
 
@@ -329,7 +333,7 @@ textarea {
 .list-card-actions {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   align-items: flex-start;
   flex-wrap: wrap;
 }
@@ -340,7 +344,7 @@ textarea {
 .extracurricular-title,
 .quarter-title {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.98rem;
   color: var(--navy);
 }
 
@@ -351,7 +355,8 @@ textarea {
 .quarter-sub,
 .empty-state {
   color: var(--muted);
-  line-height: 1.5;
+  line-height: 1.45;
+  font-size: 0.92rem;
 }
 
 .soft-tag {
@@ -360,7 +365,7 @@ textarea {
   border-radius: 999px;
   background: var(--blue-soft);
   color: var(--navy);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 700;
   margin-right: 8px;
   margin-bottom: 8px;
@@ -371,7 +376,7 @@ textarea {
 .extracurricular-stack,
 .quarter-overview-stack {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .subject-card,
@@ -379,8 +384,8 @@ textarea {
 .quarter-card,
 .course-card {
   border: 1px solid var(--line);
-  border-radius: 22px;
-  padding: 18px;
+  border-radius: 18px;
+  padding: 16px;
   background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(249,252,255,1) 100%);
   box-shadow: var(--shadow);
 }
@@ -389,23 +394,23 @@ textarea {
 .extracurricular-top {
   display: flex;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .subject-columns,
 .extracurricular-columns {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
 }
 
 .subject-column,
 .extracurricular-column {
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 14px;
+  border-radius: 16px;
+  padding: 12px;
   background: #fbfdff;
 }
 
@@ -413,22 +418,22 @@ textarea {
 .extracurricular-label {
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   color: var(--blue);
   font-weight: 700;
-  margin: 10px 0 8px;
+  margin: 8px 0 7px;
 }
 
 .progress-track {
-  height: 9px;
+  height: 8px;
   border-radius: 999px;
   background: #e3edf9;
   overflow: hidden;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .progress-bar {
-  height: 9px;
+  height: 8px;
   background: var(--blue);
   border-radius: 999px;
 }
@@ -446,7 +451,7 @@ textarea {
   gap: 8px;
   padding: 10px 12px;
   border-bottom: 1px solid #e8effb;
-  font-size: 0.85rem;
+  font-size: 0.83rem;
 }
 
 .assignment-row:last-child {
@@ -468,7 +473,7 @@ textarea {
 
 .calendar-month-title {
   font-family: "Playfair Display", serif;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   color: var(--navy);
 }
 
@@ -481,7 +486,7 @@ textarea {
 
 .calendar-weekday {
   text-align: center;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--blue);
   font-weight: 700;
   text-transform: uppercase;
@@ -489,9 +494,9 @@ textarea {
 }
 
 .calendar-day {
-  min-height: 92px;
+  min-height: 88px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 10px;
   background: white;
 }
@@ -501,21 +506,21 @@ textarea {
 }
 
 .calendar-day-number {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
   background: var(--blue-soft);
   color: var(--navy);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   margin-bottom: 8px;
 }
 
 .calendar-event {
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   padding: 5px 7px;
   border-left: 3px solid var(--blue);
   background: #f3f8ff;
@@ -572,7 +577,7 @@ textarea {
 }
 
 .weighting-note {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--muted);
 }
 
@@ -602,7 +607,7 @@ textarea {
 
   .hero h2,
   .page-title {
-    font-size: 2.5rem;
+    font-size: 2.35rem;
   }
 }
 
