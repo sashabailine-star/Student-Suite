@@ -4,9 +4,14 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const AUTH_URL = "https://sashabailine-star.github.io/Student-Suite/auth.html";
 
-const STORAGE_KEY = "studentSuiteLocalFallbackV4";
+const STORAGE_KEY = "studentSuiteLocalFallbackV5";
 const SCHOOL_YEARS = ["9th Grade", "10th Grade", "11th Grade", "12th Grade"];
 const QUARTERS = ["Q1", "Q2", "Q3", "Q4"];
+const DEFAULT_GRADING_SCHEMA = {
+  Tests: 30,
+  Assignments: 40,
+  Participation: 30
+};
 
 let currentUserId = null;
 let calendarYear = 2026;
@@ -58,12 +63,8 @@ const defaultState = {
 
 let state = loadStateFromStorage();
 
-// =========================
-// AUTH
-// =========================
 async function protectPage() {
-  const { data, error } = await supabaseClient.auth.getSession();
-  console.log("APP PAGE SESSION:", data, error);
+  const { data } = await supabaseClient.auth.getSession();
 
   if (!data?.session) {
     window.location.href = AUTH_URL;
@@ -79,11 +80,17 @@ async function logoutUser() {
   window.location.href = AUTH_URL;
 }
 
-// =========================
-// STORAGE
-// =========================
 function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
+}
+
+function normalizeGradingSchema(schema) {
+  const source = schema && typeof schema === "object" ? schema : DEFAULT_GRADING_SCHEMA;
+  return {
+    Tests: Number(source.Tests ?? 30),
+    Assignments: Number(source.Assignments ?? 40),
+    Participation: Number(source.Participation ?? 30)
+  };
 }
 
 function loadStateFromStorage() {
@@ -123,16 +130,11 @@ function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-// =========================
-// DATABASE: COURSES
-// =========================
 async function loadCoursesFromSupabase() {
   const { data, error } = await supabaseClient
     .from("courses")
     .select("*")
     .order("created_at", { ascending: true });
-
-  console.log("LOAD COURSES:", data, error);
 
   if (error) return;
 
@@ -144,7 +146,8 @@ async function loadCoursesFromSupabase() {
     notes: course.notes || "",
     reminders: course.reminders || "",
     links: course.links || "",
-    goals: course.goals || ""
+    goals: course.goals || "",
+    gradingSchema: normalizeGradingSchema(course.grading_schema)
   }));
 
   saveState();
@@ -161,12 +164,11 @@ async function addCourseToSupabase({ schoolYear, name, level }) {
       notes: "",
       reminders: "",
       links: "",
-      goals: ""
+      goals: "",
+      grading_schema: DEFAULT_GRADING_SCHEMA
     })
     .select()
     .single();
-
-  console.log("ADD COURSE:", data, error);
 
   if (error) {
     alert("Could not save course.");
@@ -181,7 +183,8 @@ async function addCourseToSupabase({ schoolYear, name, level }) {
     notes: data.notes || "",
     reminders: data.reminders || "",
     links: data.links || "",
-    goals: data.goals || ""
+    goals: data.goals || "",
+    gradingSchema: normalizeGradingSchema(data.grading_schema)
   });
 
   saveState();
@@ -203,7 +206,8 @@ async function updateCourseFieldInSupabase(courseId, field, value) {
     notes: "notes",
     reminders: "reminders",
     links: "links",
-    goals: "goals"
+    goals: "goals",
+    gradingSchema: "grading_schema"
   };
 
   const column = columnMap[field];
@@ -212,16 +216,11 @@ async function updateCourseFieldInSupabase(courseId, field, value) {
   await supabaseClient.from("courses").update({ [column]: value }).eq("id", courseId);
 }
 
-// =========================
-// DATABASE: ASSIGNMENTS
-// =========================
 async function loadAssignmentsFromSupabase() {
   const { data, error } = await supabaseClient
     .from("assignments")
     .select("*")
     .order("created_at", { ascending: true });
-
-  console.log("LOAD ASSIGNMENTS:", data, error);
 
   if (error) return;
 
@@ -229,6 +228,7 @@ async function loadAssignmentsFromSupabase() {
     id: assignment.id,
     courseId: assignment.course_id,
     name: assignment.name,
+    category: assignment.category || "Assignments",
     quarter: assignment.quarter,
     score: Number(assignment.score),
     total: Number(assignment.total),
@@ -238,13 +238,14 @@ async function loadAssignmentsFromSupabase() {
   saveState();
 }
 
-async function addAssignmentToSupabase({ courseId, name, quarter, score, total, date }) {
+async function addAssignmentToSupabase({ courseId, name, category, quarter, score, total, date }) {
   const { data, error } = await supabaseClient
     .from("assignments")
     .insert({
       user_id: currentUserId,
       course_id: courseId,
       name,
+      category,
       quarter,
       score: Number(score),
       total: Number(total),
@@ -252,8 +253,6 @@ async function addAssignmentToSupabase({ courseId, name, quarter, score, total, 
     })
     .select()
     .single();
-
-  console.log("ADD ASSIGNMENT:", data, error);
 
   if (error) {
     alert("Could not save assignment.");
@@ -264,6 +263,7 @@ async function addAssignmentToSupabase({ courseId, name, quarter, score, total, 
     id: data.id,
     courseId: data.course_id,
     name: data.name,
+    category: data.category || "Assignments",
     quarter: data.quarter,
     score: Number(data.score),
     total: Number(data.total),
@@ -283,16 +283,11 @@ async function deleteAssignmentFromSupabase(id) {
   renderPage();
 }
 
-// =========================
-// DATABASE: EXTRACURRICULARS
-// =========================
 async function loadExtracurricularsFromSupabase() {
   const { data, error } = await supabaseClient
     .from("extracurriculars")
     .select("*")
     .order("created_at", { ascending: true });
-
-  console.log("LOAD EXTRACURRICULARS:", data, error);
 
   if (error) return;
 
@@ -331,8 +326,6 @@ async function addExtracurricularToSupabase({ title, category }) {
     })
     .select()
     .single();
-
-  console.log("ADD EXTRACURRICULAR:", data, error);
 
   if (error) {
     alert("Could not save extracurricular.");
@@ -384,9 +377,6 @@ async function deleteExtracurricularFromSupabase(id) {
   renderPage();
 }
 
-// =========================
-// DATABASE: COLLEGE CONTENT
-// =========================
 async function ensureCollegeContentRow() {
   const { data } = await supabaseClient
     .from("college_content")
@@ -414,8 +404,6 @@ async function loadCollegeContentFromSupabase() {
     .select("*")
     .eq("user_id", currentUserId)
     .single();
-
-  console.log("LOAD COLLEGE CONTENT:", data, error);
 
   if (error || !data) return;
 
@@ -449,16 +437,11 @@ async function updateCollegeContentFieldInSupabase(field, value) {
     .eq("user_id", currentUserId);
 }
 
-// =========================
-// DATABASE: COLLEGE SCHOOLS
-// =========================
 async function loadCollegeSchoolsFromSupabase() {
   const { data, error } = await supabaseClient
     .from("college_schools")
     .select("*")
     .order("created_at", { ascending: true });
-
-  console.log("LOAD COLLEGE SCHOOLS:", data, error);
 
   if (error) return;
 
@@ -483,8 +466,6 @@ async function addCollegeSchoolToSupabase({ name, major, category }) {
     })
     .select()
     .single();
-
-  console.log("ADD COLLEGE SCHOOL:", data, error);
 
   if (error) {
     alert("Could not save college.");
@@ -511,16 +492,11 @@ async function deleteCollegeSchoolFromSupabase(id) {
   renderPage();
 }
 
-// =========================
-// DATABASE: COLLEGE DEADLINES
-// =========================
 async function loadCollegeDeadlinesFromSupabase() {
   const { data, error } = await supabaseClient
     .from("college_deadlines")
     .select("*")
     .order("date", { ascending: true });
-
-  console.log("LOAD COLLEGE DEADLINES:", data, error);
 
   if (error) return;
 
@@ -545,8 +521,6 @@ async function addCollegeDeadlineToSupabase({ school, type, date }) {
     })
     .select()
     .single();
-
-  console.log("ADD COLLEGE DEADLINE:", data, error);
 
   if (error) {
     alert("Could not save deadline.");
@@ -573,9 +547,6 @@ async function deleteCollegeDeadlineFromSupabase(id) {
   renderPage();
 }
 
-// =========================
-// GPA HELPERS
-// =========================
 function getGradeScaleSorted() {
   return [...state.settings.gradeScale].sort((a, b) => Number(b.min) - Number(a.min));
 }
@@ -601,7 +572,41 @@ function getAssignmentsForCourseQuarter(courseId, quarter) {
   return state.assignments.filter((a) => a.courseId === courseId && a.quarter === quarter);
 }
 
+function getCategoryAverage(courseId, quarter, category) {
+  const items = getAssignmentsForCourseQuarter(courseId, quarter).filter((a) => a.category === category);
+  if (!items.length) return null;
+
+  const earned = items.reduce((sum, item) => sum + Number(item.score), 0);
+  const possible = items.reduce((sum, item) => sum + Number(item.total), 0);
+  if (!possible) return null;
+
+  return (earned / possible) * 100;
+}
+
 function getQuarterAverage(courseId, quarter) {
+  const course = state.courses.find((c) => c.id === courseId);
+  if (!course) return null;
+
+  const schema = normalizeGradingSchema(course.gradingSchema);
+  const categories = Object.keys(schema);
+
+  let weightedTotal = 0;
+  let weightUsed = 0;
+
+  categories.forEach((category) => {
+    const avg = getCategoryAverage(courseId, quarter, category);
+    const weight = Number(schema[category] || 0);
+
+    if (avg !== null && weight > 0) {
+      weightedTotal += avg * (weight / 100);
+      weightUsed += weight;
+    }
+  });
+
+  if (weightUsed > 0) {
+    return weightedTotal * (100 / weightUsed);
+  }
+
   const items = getAssignmentsForCourseQuarter(courseId, quarter);
   if (!items.length) return null;
 
@@ -613,12 +618,8 @@ function getQuarterAverage(courseId, quarter) {
 }
 
 function getCourseYearAverage(courseId) {
-  const quarterAverages = QUARTERS
-    .map((q) => getQuarterAverage(courseId, q))
-    .filter((avg) => avg !== null);
-
+  const quarterAverages = QUARTERS.map((q) => getQuarterAverage(courseId, q)).filter((avg) => avg !== null);
   if (!quarterAverages.length) return null;
-
   return quarterAverages.reduce((sum, avg) => sum + avg, 0) / quarterAverages.length;
 }
 
@@ -662,9 +663,6 @@ function getCumulativeGpa() {
   };
 }
 
-// =========================
-// RENDER
-// =========================
 function renderDashboardStats() {
   const currentYear = state.currentYearView;
   const yearGpa = getYearGpa(currentYear);
@@ -910,6 +908,22 @@ function bindCourseTextareaAutosave() {
   });
 }
 
+function bindWeightingAutosave() {
+  document.querySelectorAll(".weight-input").forEach((input) => {
+    input.addEventListener("change", async () => {
+      const course = state.courses.find((c) => c.id === input.dataset.courseId);
+      if (!course) return;
+
+      const schema = normalizeGradingSchema(course.gradingSchema);
+      schema[input.dataset.category] = Number(input.value || 0);
+      course.gradingSchema = schema;
+      saveState();
+      await updateCourseFieldInSupabase(course.id, "gradingSchema", schema);
+      renderPage();
+    });
+  });
+}
+
 function bindExtracurricularAutosave() {
   document.querySelectorAll("textarea[data-activity-id]").forEach((textarea) => {
     textarea.addEventListener("blur", async () => {
@@ -944,13 +958,13 @@ function bindCollegeTextAutosave() {
   });
 }
 
-async function deleteGradeBand(id) {
+function deleteGradeBand(id) {
   state.settings.gradeScale = state.settings.gradeScale.filter((item) => item.id !== id);
   saveState();
   renderPage();
 }
 
-async function deleteCourseWeight(id) {
+function deleteCourseWeight(id) {
   state.settings.courseWeights = state.settings.courseWeights.filter((item) => item.id !== id);
   saveState();
   renderPage();
@@ -1027,6 +1041,7 @@ function renderSubjectWorkspaces() {
       ${courses.map((course) => {
         const yearData = getCourseYearGpa(course);
         const courseAssignments = getAssignmentsForCourse(course.id).sort((a, b) => new Date(b.date) - new Date(a.date));
+        const schema = normalizeGradingSchema(course.gradingSchema);
 
         return `
           <div class="subject-card">
@@ -1046,6 +1061,25 @@ function renderSubjectWorkspaces() {
               </div>
             </div>
 
+            <div class="subject-column top-gap">
+              <div class="subject-label">Course Weighting</div>
+              <div class="weighting-grid">
+                <div>
+                  <label class="weighting-note">Tests %</label>
+                  <input class="weight-input" data-course-id="${course.id}" data-category="Tests" type="number" min="0" max="100" value="${schema.Tests}" />
+                </div>
+                <div>
+                  <label class="weighting-note">Assignments %</label>
+                  <input class="weight-input" data-course-id="${course.id}" data-category="Assignments" type="number" min="0" max="100" value="${schema.Assignments}" />
+                </div>
+                <div>
+                  <label class="weighting-note">Participation %</label>
+                  <input class="weight-input" data-course-id="${course.id}" data-category="Participation" type="number" min="0" max="100" value="${schema.Participation}" />
+                </div>
+              </div>
+              <div class="weighting-note">These do not have to total 100 while editing, but your averages will make the most sense when they do.</div>
+            </div>
+
             <div class="top-gap">
               <button class="btn btn-danger" onclick="deleteCourse('${course.id}')">Delete Course</button>
             </div>
@@ -1054,14 +1088,21 @@ function renderSubjectWorkspaces() {
               <div class="subject-label">Add class assignment</div>
               <input type="text" name="assignmentName" placeholder="Assignment name" required />
               <div class="row-three">
+                <select name="assignmentCategory" required>
+                  <option value="Tests">Tests</option>
+                  <option value="Assignments">Assignments</option>
+                  <option value="Participation">Participation</option>
+                </select>
                 <select name="assignmentQuarter" required>
                   ${QUARTERS.map((q) => `<option value="${q}">${q}</option>`).join("")}
                 </select>
                 <input type="number" name="assignmentScore" placeholder="Score earned" min="0" step="0.01" required />
-                <input type="number" name="assignmentTotal" placeholder="Points possible" min="1" step="0.01" required />
               </div>
-              <input type="date" name="assignmentDate" required />
-              <button type="submit" class="btn btn-primary">Add Assignment</button>
+              <div class="row-three">
+                <input type="number" name="assignmentTotal" placeholder="Points possible" min="1" step="0.01" required />
+                <input type="date" name="assignmentDate" required />
+                <button type="submit" class="btn btn-primary">Add Assignment</button>
+              </div>
             </form>
 
             <div class="subject-columns">
@@ -1086,6 +1127,7 @@ function renderSubjectWorkspaces() {
                 <div class="assignment-subtable">
                   <div class="assignment-row assignment-header">
                     <div>Name</div>
+                    <div>Category</div>
                     <div>Quarter</div>
                     <div>Score</div>
                     <div>Date</div>
@@ -1099,17 +1141,18 @@ function renderSubjectWorkspaces() {
                           return `
                             <div class="assignment-row">
                               <div>${item.name}</div>
+                              <div>${item.category || "Assignments"}</div>
                               <div>${item.quarter}</div>
                               <div>${item.score}/${item.total}</div>
                               <div>${item.date}</div>
                               <div>${letter}</div>
                             </div>
                             <div class="top-gap">
-                              <button class="btn btn-danger" onclick="deleteAssignment('${item.id}')">Delete Assignment</button>
+                              <button class="btn btn-danger btn-sm" onclick="deleteAssignment('${item.id}')">Delete Assignment</button>
                             </div>
                           `;
                         }).join("")
-                      : `<div class="assignment-row"><div>No assignments yet</div><div>—</div><div>—</div><div>—</div><div>—</div></div>`
+                      : `<div class="assignment-row"><div>No assignments yet</div><div>—</div><div>—</div><div>—</div><div>—</div><div>—</div></div>`
                   }
                 </div>
               </div>
@@ -1122,6 +1165,7 @@ function renderSubjectWorkspaces() {
 
   bindSubjectForms();
   bindCourseTextareaAutosave();
+  bindWeightingAutosave();
 }
 
 function renderDeadlines() {
@@ -1377,16 +1421,18 @@ function bindSubjectForms() {
 
       const courseId = form.getAttribute("data-course-id");
       const name = form.assignmentName.value.trim();
+      const category = form.assignmentCategory.value;
       const quarter = form.assignmentQuarter.value;
       const score = form.assignmentScore.value;
       const total = form.assignmentTotal.value;
       const date = form.assignmentDate.value;
 
-      if (!courseId || !name || !quarter || !score || !total || !date) return;
+      if (!courseId || !name || !category || !quarter || !score || !total || !date) return;
 
       const ok = await addAssignmentToSupabase({
         courseId,
         name,
+        category,
         quarter,
         score,
         total,

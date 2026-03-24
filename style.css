@@ -11,7 +11,7 @@
   --blue-soft: #d9e8ff;
   --danger: #b83c3c;
   --danger-soft: #fff1f1;
-  --shadow: 0 12px 28px rgba(17, 38, 77, 0.08);
+  --shadow: 0 16px 34px rgba(17, 38, 77, 0.08);
 }
 
 * {
@@ -127,10 +127,6 @@ textarea {
   margin-bottom: 8px;
 }
 
-/* =========================
-   MAIN APP LAYOUT
-========================= */
-
 .app-layout,
 .app-shell {
   display: grid;
@@ -139,7 +135,7 @@ textarea {
 }
 
 .sidebar {
-  background: #f5f9ff;
+  background: #edf5ff;
   border-right: 1px solid var(--line);
   padding: 24px 18px;
   display: flex;
@@ -178,16 +174,14 @@ textarea {
 
 .main,
 .main-content {
-  padding: 24px;
+  padding: 32px;
   display: grid;
   gap: 18px;
   min-width: 0;
   align-content: start;
+  width: 100%;
+  max-width: 1240px;
 }
-
-/* =========================
-   GENERIC PANELS / CARDS
-========================= */
 
 .card,
 .panel,
@@ -195,18 +189,22 @@ textarea {
 .auth-card-inner {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 24px;
-  padding: 18px;
+  border-radius: 28px;
+  padding: 22px;
   box-shadow: var(--shadow);
 }
 
+.pretty-card {
+  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(251,253,255,1) 100%);
+}
+
 .section-head {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .section-title,
 .section-head h3 {
-  font-size: 2rem;
+  font-size: 2.15rem;
 }
 
 .top-gap,
@@ -215,10 +213,6 @@ textarea {
   margin-top: 14px;
 }
 
-/* =========================
-   HERO / HEADERS
-========================= */
-
 .hero {
   display: flex;
   justify-content: space-between;
@@ -226,19 +220,20 @@ textarea {
   align-items: flex-start;
   flex-wrap: wrap;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 16px;
+  padding-bottom: 18px;
 }
 
 .hero h2,
 .page-title {
-  font-size: 3rem;
+  font-size: 3.35rem;
 }
 
 .hero p,
 .page-subtitle {
   color: var(--muted);
   margin-top: 8px;
-  max-width: 700px;
+  max-width: 760px;
+  font-size: 1.02rem;
 }
 
 .hero-actions {
@@ -246,10 +241,6 @@ textarea {
   gap: 10px;
   flex-wrap: wrap;
 }
-
-/* =========================
-   FORMS / GRIDS
-========================= */
 
 .toolbar {
   display: flex;
@@ -279,7 +270,7 @@ textarea {
 .auth-two-column {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 18px;
 }
 
 .row-three {
@@ -288,14 +279,10 @@ textarea {
   gap: 10px;
 }
 
-/* =========================
-   STATS
-========================= */
-
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .stats-grid-three {
@@ -303,7 +290,7 @@ textarea {
 }
 
 .stat-card {
-  min-height: 145px;
+  min-height: 170px;
 }
 
 .stat-label {
@@ -316,7 +303,7 @@ textarea {
 
 .stat-value {
   font-family: "Playfair Display", serif;
-  font-size: 2.6rem;
+  font-size: 2.7rem;
   color: var(--navy);
   margin: 12px 0 8px;
 }
@@ -325,10 +312,6 @@ textarea {
   color: var(--muted);
   line-height: 1.45;
 }
-
-/* =========================
-   LISTS / TAGS
-========================= */
 
 .list-stack {
   display: grid;
@@ -383,16 +366,12 @@ textarea {
   margin-bottom: 8px;
 }
 
-/* =========================
-   COURSE / SUBJECT / ACTIVITY CARDS
-========================= */
-
 .subject-stack,
 .course-stack,
 .extracurricular-stack,
 .quarter-overview-stack {
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .subject-card,
@@ -400,9 +379,10 @@ textarea {
 .quarter-card,
 .course-card {
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 16px;
-  background: white;
+  border-radius: 22px;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(249,252,255,1) 100%);
+  box-shadow: var(--shadow);
 }
 
 .subject-top,
@@ -411,7 +391,7 @@ textarea {
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .subject-columns,
@@ -424,8 +404,8 @@ textarea {
 .subject-column,
 .extracurricular-column {
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 18px;
+  padding: 14px;
   background: #fbfdff;
 }
 
@@ -453,10 +433,6 @@ textarea {
   border-radius: 999px;
 }
 
-/* =========================
-   TABLES / ASSIGNMENTS
-========================= */
-
 .assignment-subtable {
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -466,7 +442,7 @@ textarea {
 
 .assignment-row {
   display: grid;
-  grid-template-columns: 1.3fr 0.7fr 0.8fr 0.9fr 0.5fr;
+  grid-template-columns: 1.3fr 0.8fr 0.7fr 0.8fr 0.8fr 0.6fr;
   gap: 8px;
   padding: 10px 12px;
   border-bottom: 1px solid #e8effb;
@@ -482,10 +458,6 @@ textarea {
   font-weight: 700;
   color: var(--navy);
 }
-
-/* =========================
-   CALENDAR
-========================= */
 
 .calendar-controls {
   display: flex;
@@ -552,10 +524,6 @@ textarea {
   margin-bottom: 6px;
 }
 
-/* =========================
-   AUTH
-========================= */
-
 .auth-page {
   min-height: 100vh;
   display: flex;
@@ -596,9 +564,17 @@ textarea {
   justify-content: center;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
+.weighting-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.weighting-note {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
 
 @media (max-width: 1200px) {
   .stats-grid {
@@ -619,7 +595,8 @@ textarea {
   .two-col,
   .auth-grid,
   .auth-two-column,
-  .row-three {
+  .row-three,
+  .weighting-grid {
     grid-template-columns: 1fr;
   }
 
