@@ -2,7 +2,7 @@ const SUPABASE_URL = "https://kprlkctuyggqypjqwrey.supabase.co";
 const SUPABASE_KEY = "sb_publishable_w3xLD4D-gk0HQwRCOY7kow_7aa_qLzM";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const STORAGE_KEY = "studentSuiteLocalFallbackV1";
+const STORAGE_KEY = "studentSuiteLocalFallbackV2";
 const SCHOOL_YEARS = ["9th Grade", "10th Grade", "11th Grade", "12th Grade"];
 const QUARTERS = ["Q1", "Q2", "Q3", "Q4"];
 
@@ -232,6 +232,95 @@ async function updateCourseFieldInSupabase(courseId, field, value) {
   if (error) {
     console.error("Could not update course field:", error);
   }
+}
+
+// =========================
+// DATABASE: ASSIGNMENTS
+// =========================
+async function loadAssignmentsFromSupabase() {
+  if (!currentUserId) return;
+
+  const { data, error } = await supabaseClient
+    .from("assignments")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  console.log("LOAD ASSIGNMENTS:", data, error);
+
+  if (error) {
+    console.error("Error loading assignments:", error);
+    return;
+  }
+
+  state.assignments = (data || []).map((assignment) => ({
+    id: assignment.id,
+    courseId: assignment.course_id,
+    name: assignment.name,
+    quarter: assignment.quarter,
+    score: Number(assignment.score),
+    total: Number(assignment.total),
+    date: assignment.date
+  }));
+
+  saveState();
+}
+
+async function addAssignmentToSupabase({ courseId, name, quarter, score, total, date }) {
+  if (!currentUserId) return false;
+
+  const payload = {
+    user_id: currentUserId,
+    course_id: courseId,
+    name,
+    quarter,
+    score: Number(score),
+    total: Number(total),
+    date
+  };
+
+  const { data, error } = await supabaseClient
+    .from("assignments")
+    .insert(payload)
+    .select()
+    .single();
+
+  console.log("ADD ASSIGNMENT:", data, error);
+
+  if (error) {
+    alert("Could not save assignment. Check the browser console.");
+    return false;
+  }
+
+  state.assignments.push({
+    id: data.id,
+    courseId: data.course_id,
+    name: data.name,
+    quarter: data.quarter,
+    score: Number(data.score),
+    total: Number(data.total),
+    date: data.date
+  });
+
+  saveState();
+  return true;
+}
+
+async function deleteAssignmentFromSupabase(id) {
+  const { error } = await supabaseClient
+    .from("assignments")
+    .delete()
+    .eq("id", id);
+
+  console.log("DELETE ASSIGNMENT:", id, error);
+
+  if (error) {
+    alert("Could not delete assignment. Check the browser console.");
+    return;
+  }
+
+  state.assignments = state.assignments.filter((item) => item.id !== id);
+  saveState();
+  renderPage();
 }
 
 // =========================
@@ -598,10 +687,8 @@ async function deleteCourse(id) {
   await deleteCourseFromSupabase(id);
 }
 
-function deleteAssignment(id) {
-  state.assignments = state.assignments.filter((item) => item.id !== id);
-  saveState();
-  renderPage();
+async function deleteAssignment(id) {
+  await deleteAssignmentFromSupabase(id);
 }
 
 function deleteDeadline(id) {
@@ -749,6 +836,9 @@ function renderSubjectWorkspaces() {
                               <div>${item.score}/${item.total}</div>
                               <div>${item.date}</div>
                               <div>${letter}</div>
+                            </div>
+                            <div class="top-gap">
+                              <button class="btn btn-danger" onclick="deleteAssignment('${item.id}')">Delete Assignment</button>
                             </div>
                           `;
                         }).join("")
@@ -1034,7 +1124,7 @@ function bindForms() {
 
 function bindSubjectForms() {
   document.querySelectorAll(".subject-form-inline").forEach((form) => {
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
 
       const courseId = form.getAttribute("data-course-id");
@@ -1046,17 +1136,17 @@ function bindSubjectForms() {
 
       if (!courseId || !name || !quarter || !score || !total || !date) return;
 
-      state.assignments.push({
-        id: crypto.randomUUID(),
+      const ok = await addAssignmentToSupabase({
         courseId,
         name,
         quarter,
-        score: Number(score),
-        total: Number(total),
+        score,
+        total,
         date
       });
 
-      saveState();
+      if (!ok) return;
+
       renderPage();
       form.reset();
     });
@@ -1106,6 +1196,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!allowed) return;
 
   await loadCoursesFromSupabase();
+  await loadAssignmentsFromSupabase();
 
   bindForms();
   renderPage();
