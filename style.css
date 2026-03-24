@@ -77,6 +77,7 @@ textarea:focus {
 
 textarea {
   resize: vertical;
+  min-height: 120px;
 }
 
 .big-textarea {
@@ -96,7 +97,8 @@ textarea {
   color: white;
 }
 
-.btn-secondary {
+.btn-secondary,
+.btn-dark {
   background: var(--navy);
   color: white;
 }
@@ -105,6 +107,11 @@ textarea {
   background: var(--danger-soft);
   color: var(--danger);
   border: 1px solid #efcaca;
+}
+
+.btn-sm {
+  padding: 8px 12px;
+  font-size: 0.86rem;
 }
 
 .btn-full {
@@ -124,7 +131,8 @@ textarea {
    MAIN APP LAYOUT
 ========================= */
 
-.app-layout {
+.app-layout,
+.app-shell {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   min-height: 100vh;
@@ -168,7 +176,8 @@ textarea {
   margin-top: auto;
 }
 
-.main {
+.main,
+.main-content {
   padding: 24px;
   display: grid;
   gap: 18px;
@@ -177,7 +186,37 @@ textarea {
 }
 
 /* =========================
-   DASHBOARD / PAGE CONTENT
+   GENERIC PANELS / CARDS
+========================= */
+
+.card,
+.panel,
+.auth-panel,
+.auth-card-inner {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.section-head {
+  margin-bottom: 14px;
+}
+
+.section-title,
+.section-head h3 {
+  font-size: 2rem;
+}
+
+.top-gap,
+.top-space,
+.top-space-sm {
+  margin-top: 14px;
+}
+
+/* =========================
+   HERO / HEADERS
 ========================= */
 
 .hero {
@@ -190,11 +229,13 @@ textarea {
   padding-bottom: 16px;
 }
 
-.hero h2 {
+.hero h2,
+.page-title {
   font-size: 3rem;
 }
 
-.hero p {
+.hero p,
+.page-subtitle {
   color: var(--muted);
   margin-top: 8px;
   max-width: 700px;
@@ -205,6 +246,10 @@ textarea {
   gap: 10px;
   flex-wrap: wrap;
 }
+
+/* =========================
+   FORMS / GRIDS
+========================= */
 
 .toolbar {
   display: flex;
@@ -219,21 +264,33 @@ textarea {
   margin-bottom: 6px;
 }
 
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  padding: 18px;
-  box-shadow: var(--shadow);
+.stack-form,
+.editorial-form {
+  display: grid;
+  gap: 12px;
 }
 
-.section-head {
-  margin-bottom: 14px;
+.compact-form {
+  margin-bottom: 4px;
 }
 
-.section-head h3 {
-  font-size: 2rem;
+.two-col,
+.auth-grid,
+.auth-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
+
+.row-three {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* =========================
+   STATS
+========================= */
 
 .stats-grid {
   display: grid;
@@ -269,23 +326,13 @@ textarea {
   line-height: 1.45;
 }
 
-.two-col {
+/* =========================
+   LISTS / TAGS
+========================= */
+
+.list-stack {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.stack-form {
-  display: grid;
-  gap: 12px;
-}
-
-.compact-form {
-  margin-bottom: 4px;
-}
-
-.top-gap {
-  margin-top: 14px;
+  gap: 10px;
 }
 
 .list-card {
@@ -295,15 +342,13 @@ textarea {
   background: #fff;
 }
 
-.list-card + .list-card {
-  margin-top: 10px;
-}
-
-.list-card-row {
+.list-card-row,
+.list-card-actions {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .list-title,
@@ -338,19 +383,9 @@ textarea {
   margin-bottom: 8px;
 }
 
-.progress-track {
-  height: 9px;
-  border-radius: 999px;
-  background: #e3edf9;
-  overflow: hidden;
-  margin-top: 12px;
-}
-
-.progress-bar {
-  height: 9px;
-  background: var(--blue);
-  border-radius: 999px;
-}
+/* =========================
+   COURSE / SUBJECT / ACTIVITY CARDS
+========================= */
 
 .subject-stack,
 .course-stack,
@@ -404,15 +439,23 @@ textarea {
   margin: 10px 0 8px;
 }
 
-.subject-form-inline {
-  margin-bottom: 14px;
+.progress-track {
+  height: 9px;
+  border-radius: 999px;
+  background: #e3edf9;
+  overflow: hidden;
+  margin-top: 12px;
 }
 
-.row-three {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+.progress-bar {
+  height: 9px;
+  background: var(--blue);
+  border-radius: 999px;
 }
+
+/* =========================
+   TABLES / ASSIGNMENTS
+========================= */
 
 .assignment-subtable {
   border: 1px solid var(--line);
@@ -439,6 +482,10 @@ textarea {
   font-weight: 700;
   color: var(--navy);
 }
+
+/* =========================
+   CALENDAR
+========================= */
 
 .calendar-controls {
   display: flex;
@@ -506,7 +553,7 @@ textarea {
 }
 
 /* =========================
-   AUTH PAGE
+   AUTH
 ========================= */
 
 .auth-page {
@@ -534,19 +581,19 @@ textarea {
   margin-top: 10px;
 }
 
-.auth-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.auth-card h2 {
-  font-size: 2.1rem;
-  margin-bottom: 12px;
-}
-
 .auth-message {
   margin-top: 16px;
+}
+
+.auth-shell {
+  grid-template-columns: 1fr;
+}
+
+.auth-main {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* =========================
@@ -571,17 +618,20 @@ textarea {
 @media (max-width: 900px) {
   .two-col,
   .auth-grid,
+  .auth-two-column,
   .row-three {
     grid-template-columns: 1fr;
   }
 
-  .hero h2 {
+  .hero h2,
+  .page-title {
     font-size: 2.5rem;
   }
 }
 
 @media (max-width: 700px) {
-  .app-layout {
+  .app-layout,
+  .app-shell {
     grid-template-columns: 1fr;
   }
 
