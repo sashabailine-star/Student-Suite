@@ -15,11 +15,11 @@
       </div>
 
       <nav class="nav">
-        <a class="nav-link active" href="https://sashabailine-star.github.io/Student-Suite/index.html">Dashboard</a>
-        <a class="nav-link" href="https://sashabailine-star.github.io/Student-Suite/academics.html">Academics</a>
-        <a class="nav-link" href="https://sashabailine-star.github.io/Student-Suite/college.html">College Hub</a>
-        <a class="nav-link" href="https://sashabailine-star.github.io/Student-Suite/extracurriculars.html">Extracurriculars</a>
-        <a class="nav-link" href="https://sashabailine-star.github.io/Student-Suite/settings.html">Settings</a>
+        <a class="nav-link active" href="./index.html">Dashboard</a>
+        <a class="nav-link" href="./academics.html">Academics</a>
+        <a class="nav-link" href="./college.html">College Hub</a>
+        <a class="nav-link" href="./extracurriculars.html">Extracurriculars</a>
+        <a class="nav-link" href="./settings.html">Settings</a>
       </nav>
 
       <div class="sidebar-footer">
@@ -31,8 +31,8 @@
       <header class="hero">
         <div>
           <div class="eyebrow">Overview</div>
-          <h2>Academic Dashboard</h2>
-          <p>Your grades, GPA, deadlines, and calendar in one place.</p>
+          <h2>Sasha's Academic Dashboard</h2>
+          <p>Track grades, GPA, deadlines, and your own outside-to-do list in one polished workspace.</p>
         </div>
       </header>
 
@@ -44,31 +44,31 @@
       </section>
 
       <section class="stats-grid">
-        <article class="card stat-card">
+        <article class="card stat-card pretty-card">
           <div class="stat-label">Weighted GPA</div>
           <div class="stat-value" id="yearWeightedGpa">0.00</div>
           <div class="stat-sub">Selected school year</div>
         </article>
 
-        <article class="card stat-card">
+        <article class="card stat-card pretty-card">
           <div class="stat-label">Unweighted GPA</div>
           <div class="stat-value" id="yearUnweightedGpa">0.00</div>
           <div class="stat-sub">Selected school year</div>
         </article>
 
-        <article class="card stat-card">
+        <article class="card stat-card pretty-card">
           <div class="stat-label">Cumulative W GPA</div>
           <div class="stat-value" id="cumulativeWeightedGpa">0.00</div>
           <div class="stat-sub">All high school years</div>
         </article>
 
-        <article class="card stat-card">
+        <article class="card stat-card pretty-card">
           <div class="stat-label">Cumulative UW GPA</div>
           <div class="stat-value" id="cumulativeUnweightedGpa">0.00</div>
           <div class="stat-sub">All high school years</div>
         </article>
 
-        <article class="card stat-card">
+        <article class="card stat-card pretty-card">
           <div class="stat-label">Courses</div>
           <div class="stat-value" id="courseCount">0</div>
           <div class="stat-sub">In selected year</div>
@@ -76,17 +76,17 @@
       </section>
 
       <section class="two-col">
-        <article class="card">
+        <article class="card pretty-card">
           <div class="section-head">
             <div>
-              <div class="eyebrow">Quarter Overview</div>
-              <h3>Grade Trends by Quarter</h3>
+              <div class="eyebrow">Performance</div>
+              <h3>Grade Trends</h3>
             </div>
           </div>
           <div id="dashboardQuarterOverview"></div>
         </article>
 
-        <article class="card">
+        <article class="card pretty-card">
           <div class="section-head">
             <div>
               <div class="eyebrow">Upcoming</div>
@@ -98,33 +98,49 @@
       </section>
 
       <section class="two-col">
-        <article class="card">
+        <article class="card pretty-card">
           <div class="section-head">
             <div>
-              <div class="eyebrow">Courses</div>
+              <div class="eyebrow">Averages</div>
               <h3>Course Averages</h3>
             </div>
           </div>
           <div id="dashboardCourseAverages"></div>
         </article>
 
-        <article class="card">
+        <article class="card pretty-card">
           <div class="section-head">
             <div>
-              <div class="eyebrow">Calendar</div>
-              <h3>Month View</h3>
+              <div class="eyebrow">Life Admin</div>
+              <h3>To-Do List</h3>
             </div>
           </div>
 
-          <form id="calendarEventForm" class="stack-form compact-form">
-            <input type="text" id="calendarEventTitle" placeholder="Event title" required />
-            <input type="date" id="calendarEventDate" required />
-            <input type="text" id="calendarEventCategory" placeholder="Category" required />
-            <button type="submit" class="btn btn-primary">Add Event</button>
+          <form id="todoForm" class="stack-form compact-form">
+            <input type="text" id="todoInput" placeholder="Add a non-school to-do item..." required />
+            <button type="submit" class="btn btn-primary">Add Task</button>
           </form>
 
-          <div id="calendarGrid" class="top-gap"></div>
+          <div id="todoList" class="top-gap"></div>
         </article>
+      </section>
+
+      <section class="card pretty-card">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Calendar</div>
+            <h3>Month View</h3>
+          </div>
+        </div>
+
+        <form id="calendarEventForm" class="stack-form compact-form">
+          <input type="text" id="calendarEventTitle" placeholder="Event title" required />
+          <input type="date" id="calendarEventDate" required />
+          <input type="text" id="calendarEventCategory" placeholder="Category" required />
+          <button type="submit" class="btn btn-primary">Add Event</button>
+        </form>
+
+        <div id="calendarGrid" class="top-gap"></div>
       </section>
     </main>
   </div>
