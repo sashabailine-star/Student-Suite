@@ -7,79 +7,69 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body data-page="academics">
-  <div class="app-shell">
+  <div class="app-layout">
     <aside class="sidebar">
-      <div class="sidebar-topbar"></div>
-
-      <div class="brand-block">
-        <div class="eyebrow">Academic, College & Life Platform</div>
-        <h1 class="brand-title">Student Suite</h1>
-        <p class="brand-copy">
-          A polished editorial dashboard for academics, college planning, activities, and organization.
-        </p>
+      <div class="brand">
+        <div class="eyebrow">Student Suite</div>
+        <h1>Academics</h1>
       </div>
 
       <nav class="nav">
-        <a class="nav-link" href="index.html">Dashboard</a>
-        <a class="nav-link active" href="academics.html">Academics</a>
-        <a class="nav-link" href="college.html">College Hub</a>
-        <a class="nav-link" href="extracurriculars.html">Extracurriculars</a>
-        <a class="nav-link" href="settings.html">Settings</a>
+        <a class="nav-link" href="./index.html">Dashboard</a>
+        <a class="nav-link active" href="./academics.html">Academics</a>
+        <a class="nav-link" href="./college.html">College Hub</a>
+        <a class="nav-link" href="./extracurriculars.html">Extracurriculars</a>
+        <a class="nav-link" href="./settings.html">Settings</a>
       </nav>
 
-      <div class="sidebar-note">
-        <div class="note-label">Academics</div>
-        <div class="note-value">Assignments are organized by school year and quarter.</div>
+      <div class="sidebar-footer">
+        <button class="btn btn-secondary btn-full" onclick="logoutUser()">Log Out</button>
       </div>
     </aside>
 
-    <main class="main-content">
-      <header class="hero-header">
+    <main class="main">
+      <header class="hero">
         <div>
           <div class="eyebrow">Academics</div>
-          <h2 class="page-title">Subject Workspaces</h2>
-          <p class="page-subtitle">
-            Track quarter grades, class assignments, notes, reminders, and yearly GPA by subject.
-          </p>
+          <h2>Subject Workspaces</h2>
+          <p>Add classes, quarter assignments, notes, reminders, and study materials.</p>
         </div>
       </header>
 
-      <section class="two-column">
-        <article class="panel">
+      <section class="two-col">
+        <article class="card">
           <div class="section-head">
             <div>
-              <div class="eyebrow">Add Course</div>
-              <h3 class="section-title">New Subject</h3>
+              <div class="eyebrow">Add Subject</div>
+              <h3>New Course</h3>
             </div>
           </div>
 
-          <form id="courseForm" class="editorial-form">
+          <form id="courseForm" class="stack-form">
             <select id="courseYear" required></select>
             <input type="text" id="courseName" placeholder="Course name" required />
             <select id="courseLevel" required></select>
-            <button type="submit" class="btn btn-full">Add Subject</button>
+            <button type="submit" class="btn btn-primary">Add Course</button>
           </form>
         </article>
 
-        <article class="panel">
+        <article class="card">
           <div class="section-head">
             <div>
-              <div class="eyebrow">Filter</div>
-              <h3 class="section-title">View Year</h3>
+              <div class="eyebrow">View</div>
+              <h3>School Year</h3>
             </div>
           </div>
 
-          <div class="year-selector-inline">
-            <select id="academicsYearSelector"></select>
-          </div>
+          <select id="academicsYearSelector"></select>
         </article>
       </section>
 
-      <section class="panel">
+      <section class="card">
         <div class="section-head">
           <div>
             <div class="eyebrow">Workspace</div>
-            <h3 class="section-title">Subjects</h3>
+            <h3>Academic Subjects</h3>
           </div>
         </div>
 
@@ -87,7 +77,7 @@
       </section>
     </main>
   </div>
- 
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
 </body>
