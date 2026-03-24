@@ -1,7 +1,5 @@
-// force rebuild
 const SUPABASE_URL = "https://kprlkctuyggqypjqwrey.supabase.co";
 const SUPABASE_KEY = "sb_publishable_w3xLD4D-gk0HQwRCOY7kow_7aa_qLzM";
-
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function showAuthMessage(message, isError = false) {
@@ -19,7 +17,7 @@ function showAuthMessage(message, isError = false) {
 
 async function redirectIfLoggedIn() {
   const { data, error } = await supabaseClient.auth.getSession();
-  console.log("SESSION CHECK:", data, error);
+  console.log("AUTH PAGE SESSION:", data, error);
 
   if (data?.session) {
     window.location.href = "index.html";
@@ -43,7 +41,7 @@ async function handleSignup(email, password) {
     showAuthMessage("Account created. Redirecting...");
     setTimeout(() => {
       window.location.href = "index.html";
-    }, 800);
+    }, 700);
     return;
   }
 
