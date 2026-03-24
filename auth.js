@@ -2,13 +2,15 @@ const SUPABASE_URL = "https://kprlkctuyggqypjqwrey.supabase.co";
 const SUPABASE_KEY = "sb_publishable_w3xLD4D-gk0HQwRCOY7kow_7aa_qLzM";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const DASHBOARD_URL = "https://sashabailine-star.github.io/Student-Suite/index.html";
+
 function showAuthMessage(message, isError = false) {
   const el = document.getElementById("authMessage");
   if (!el) return;
 
   el.innerHTML = `
-    <div class="list-card" style="border-color:${isError ? "#f0c8c8" : "#bfd3f4"};">
-      <div class="list-sub" style="color:${isError ? "#b33939" : "#163a70"};">
+    <div class="list-card" style="border-color:${isError ? "#efcaca" : "#bfd1ef"};">
+      <div class="list-sub" style="color:${isError ? "#b83c3c" : "#173c79"};">
         ${message}
       </div>
     </div>
@@ -16,11 +18,9 @@ function showAuthMessage(message, isError = false) {
 }
 
 async function redirectIfLoggedIn() {
-  const { data, error } = await supabaseClient.auth.getSession();
-  console.log("AUTH PAGE SESSION:", data, error);
-
+  const { data } = await supabaseClient.auth.getSession();
   if (data?.session) {
-    window.location.href = "index.html";
+    window.location.href = DASHBOARD_URL;
   }
 }
 
@@ -30,8 +30,6 @@ async function handleSignup(email, password) {
     password
   });
 
-  console.log("SIGN UP RESULT:", data, error);
-
   if (error) {
     showAuthMessage(error.message, true);
     return;
@@ -40,8 +38,8 @@ async function handleSignup(email, password) {
   if (data?.session) {
     showAuthMessage("Account created. Redirecting...");
     setTimeout(() => {
-      window.location.href = "index.html";
-    }, 700);
+      window.location.href = DASHBOARD_URL;
+    }, 600);
     return;
   }
 
@@ -56,8 +54,6 @@ async function handleLogin(email, password) {
     password
   });
 
-  console.log("LOGIN RESULT:", data, error);
-
   if (error) {
     showAuthMessage(error.message, true);
     return;
@@ -66,7 +62,7 @@ async function handleLogin(email, password) {
   if (data?.session) {
     showAuthMessage("Login successful. Redirecting...");
     setTimeout(() => {
-      window.location.href = "index.html";
+      window.location.href = DASHBOARD_URL;
     }, 500);
   }
 }

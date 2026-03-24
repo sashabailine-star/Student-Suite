@@ -2,7 +2,9 @@ const SUPABASE_URL = "https://kprlkctuyggqypjqwrey.supabase.co";
 const SUPABASE_KEY = "sb_publishable_w3xLD4D-gk0HQwRCOY7kow_7aa_qLzM";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const STORAGE_KEY = "studentSuiteLocalFallbackV3";
+const AUTH_URL = "https://sashabailine-star.github.io/Student-Suite/auth.html";
+
+const STORAGE_KEY = "studentSuiteLocalFallbackV4";
 const SCHOOL_YEARS = ["9th Grade", "10th Grade", "11th Grade", "12th Grade"];
 const QUARTERS = ["Q1", "Q2", "Q3", "Q4"];
 
@@ -64,7 +66,7 @@ async function protectPage() {
   console.log("APP PAGE SESSION:", data, error);
 
   if (!data?.session) {
-    window.location.href = "auth.html";
+    window.location.href = AUTH_URL;
     return false;
   }
 
@@ -74,7 +76,7 @@ async function protectPage() {
 
 async function logoutUser() {
   await supabaseClient.auth.signOut();
-  window.location.href = "auth.html";
+  window.location.href = AUTH_URL;
 }
 
 // =========================
@@ -107,7 +109,10 @@ function loadStateFromStorage() {
         ...clone(defaultState.college),
         ...(parsed.college || {})
       },
-      extracurriculars: Array.isArray(parsed.extracurriculars) ? parsed.extracurriculars : []
+      extracurriculars: Array.isArray(parsed.extracurriculars) ? parsed.extracurriculars : [],
+      courses: Array.isArray(parsed.courses) ? parsed.courses : [],
+      assignments: Array.isArray(parsed.assignments) ? parsed.assignments : [],
+      calendarEvents: Array.isArray(parsed.calendarEvents) ? parsed.calendarEvents : []
     };
   } catch {
     return clone(defaultState);
@@ -939,13 +944,13 @@ function bindCollegeTextAutosave() {
   });
 }
 
-function deleteGradeBand(id) {
+async function deleteGradeBand(id) {
   state.settings.gradeScale = state.settings.gradeScale.filter((item) => item.id !== id);
   saveState();
   renderPage();
 }
 
-function deleteCourseWeight(id) {
+async function deleteCourseWeight(id) {
   state.settings.courseWeights = state.settings.courseWeights.filter((item) => item.id !== id);
   saveState();
   renderPage();
