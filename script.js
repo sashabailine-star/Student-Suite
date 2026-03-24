@@ -2,7 +2,7 @@ const SUPABASE_URL = "https://kprlkctuyggqypjqwrey.supabase.co";
 const SUPABASE_KEY = "sb_publishable_w3xLD4D-gk0HQwRCOY7kow_7aa_qLzM";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const STORAGE_KEY = "studentSuiteLocalFallbackV2";
+const STORAGE_KEY = "studentSuiteLocalFallbackV3";
 const SCHOOL_YEARS = ["9th Grade", "10th Grade", "11th Grade", "12th Grade"];
 const QUARTERS = ["Q1", "Q2", "Q3", "Q4"];
 
@@ -122,8 +122,6 @@ function saveState() {
 // DATABASE: COURSES
 // =========================
 async function loadCoursesFromSupabase() {
-  if (!currentUserId) return;
-
   const { data, error } = await supabaseClient
     .from("courses")
     .select("*")
@@ -131,10 +129,7 @@ async function loadCoursesFromSupabase() {
 
   console.log("LOAD COURSES:", data, error);
 
-  if (error) {
-    console.error("Error loading courses:", error);
-    return;
-  }
+  if (error) return;
 
   state.courses = (data || []).map((course) => ({
     id: course.id,
@@ -151,29 +146,25 @@ async function loadCoursesFromSupabase() {
 }
 
 async function addCourseToSupabase({ schoolYear, name, level }) {
-  if (!currentUserId) return false;
-
-  const payload = {
-    user_id: currentUserId,
-    school_year: schoolYear,
-    name,
-    level,
-    notes: "",
-    reminders: "",
-    links: "",
-    goals: ""
-  };
-
   const { data, error } = await supabaseClient
     .from("courses")
-    .insert(payload)
+    .insert({
+      user_id: currentUserId,
+      school_year: schoolYear,
+      name,
+      level,
+      notes: "",
+      reminders: "",
+      links: "",
+      goals: ""
+    })
     .select()
     .single();
 
   console.log("ADD COURSE:", data, error);
 
   if (error) {
-    alert("Could not save course. Check the browser console.");
+    alert("Could not save course.");
     return false;
   }
 
@@ -193,17 +184,8 @@ async function addCourseToSupabase({ schoolYear, name, level }) {
 }
 
 async function deleteCourseFromSupabase(id) {
-  const { error } = await supabaseClient
-    .from("courses")
-    .delete()
-    .eq("id", id);
-
-  console.log("DELETE COURSE:", id, error);
-
-  if (error) {
-    alert("Could not delete course. Check the browser console.");
-    return;
-  }
+  const { error } = await supabaseClient.from("courses").delete().eq("id", id);
+  if (error) return;
 
   state.courses = state.courses.filter((course) => course.id !== id);
   state.assignments = state.assignments.filter((assignment) => assignment.courseId !== id);
@@ -222,24 +204,13 @@ async function updateCourseFieldInSupabase(courseId, field, value) {
   const column = columnMap[field];
   if (!column) return;
 
-  const { error } = await supabaseClient
-    .from("courses")
-    .update({ [column]: value })
-    .eq("id", courseId);
-
-  console.log("UPDATE COURSE FIELD:", courseId, field, error);
-
-  if (error) {
-    console.error("Could not update course field:", error);
-  }
+  await supabaseClient.from("courses").update({ [column]: value }).eq("id", courseId);
 }
 
 // =========================
 // DATABASE: ASSIGNMENTS
 // =========================
 async function loadAssignmentsFromSupabase() {
-  if (!currentUserId) return;
-
   const { data, error } = await supabaseClient
     .from("assignments")
     .select("*")
@@ -247,10 +218,7 @@ async function loadAssignmentsFromSupabase() {
 
   console.log("LOAD ASSIGNMENTS:", data, error);
 
-  if (error) {
-    console.error("Error loading assignments:", error);
-    return;
-  }
+  if (error) return;
 
   state.assignments = (data || []).map((assignment) => ({
     id: assignment.id,
@@ -266,28 +234,24 @@ async function loadAssignmentsFromSupabase() {
 }
 
 async function addAssignmentToSupabase({ courseId, name, quarter, score, total, date }) {
-  if (!currentUserId) return false;
-
-  const payload = {
-    user_id: currentUserId,
-    course_id: courseId,
-    name,
-    quarter,
-    score: Number(score),
-    total: Number(total),
-    date
-  };
-
   const { data, error } = await supabaseClient
     .from("assignments")
-    .insert(payload)
+    .insert({
+      user_id: currentUserId,
+      course_id: courseId,
+      name,
+      quarter,
+      score: Number(score),
+      total: Number(total),
+      date
+    })
     .select()
     .single();
 
   console.log("ADD ASSIGNMENT:", data, error);
 
   if (error) {
-    alert("Could not save assignment. Check the browser console.");
+    alert("Could not save assignment.");
     return false;
   }
 
@@ -306,19 +270,300 @@ async function addAssignmentToSupabase({ courseId, name, quarter, score, total, 
 }
 
 async function deleteAssignmentFromSupabase(id) {
-  const { error } = await supabaseClient
-    .from("assignments")
-    .delete()
-    .eq("id", id);
-
-  console.log("DELETE ASSIGNMENT:", id, error);
-
-  if (error) {
-    alert("Could not delete assignment. Check the browser console.");
-    return;
-  }
+  const { error } = await supabaseClient.from("assignments").delete().eq("id", id);
+  if (error) return;
 
   state.assignments = state.assignments.filter((item) => item.id !== id);
+  saveState();
+  renderPage();
+}
+
+// =========================
+// DATABASE: EXTRACURRICULARS
+// =========================
+async function loadExtracurricularsFromSupabase() {
+  const { data, error } = await supabaseClient
+    .from("extracurriculars")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  console.log("LOAD EXTRACURRICULARS:", data, error);
+
+  if (error) return;
+
+  state.extracurriculars = (data || []).map((item) => ({
+    id: item.id,
+    title: item.title,
+    category: item.category,
+    description: item.description || "",
+    accomplishments: item.accomplishments || "",
+    impact: item.impact || "",
+    leadership: item.leadership || "",
+    goals: item.goals || "",
+    reminders: item.reminders || "",
+    resumeIdeas: item.resume_ideas || "",
+    essayIdeas: item.essay_ideas || ""
+  }));
+
+  saveState();
+}
+
+async function addExtracurricularToSupabase({ title, category }) {
+  const { data, error } = await supabaseClient
+    .from("extracurriculars")
+    .insert({
+      user_id: currentUserId,
+      title,
+      category,
+      description: "",
+      accomplishments: "",
+      impact: "",
+      leadership: "",
+      goals: "",
+      reminders: "",
+      resume_ideas: "",
+      essay_ideas: ""
+    })
+    .select()
+    .single();
+
+  console.log("ADD EXTRACURRICULAR:", data, error);
+
+  if (error) {
+    alert("Could not save extracurricular.");
+    return false;
+  }
+
+  state.extracurriculars.push({
+    id: data.id,
+    title: data.title,
+    category: data.category,
+    description: data.description || "",
+    accomplishments: data.accomplishments || "",
+    impact: data.impact || "",
+    leadership: data.leadership || "",
+    goals: data.goals || "",
+    reminders: data.reminders || "",
+    resumeIdeas: data.resume_ideas || "",
+    essayIdeas: data.essay_ideas || ""
+  });
+
+  saveState();
+  return true;
+}
+
+async function updateExtracurricularFieldInSupabase(activityId, field, value) {
+  const columnMap = {
+    description: "description",
+    accomplishments: "accomplishments",
+    impact: "impact",
+    leadership: "leadership",
+    goals: "goals",
+    reminders: "reminders",
+    resumeIdeas: "resume_ideas",
+    essayIdeas: "essay_ideas"
+  };
+
+  const column = columnMap[field];
+  if (!column) return;
+
+  await supabaseClient.from("extracurriculars").update({ [column]: value }).eq("id", activityId);
+}
+
+async function deleteExtracurricularFromSupabase(id) {
+  const { error } = await supabaseClient.from("extracurriculars").delete().eq("id", id);
+  if (error) return;
+
+  state.extracurriculars = state.extracurriculars.filter((item) => item.id !== id);
+  saveState();
+  renderPage();
+}
+
+// =========================
+// DATABASE: COLLEGE CONTENT
+// =========================
+async function ensureCollegeContentRow() {
+  const { data } = await supabaseClient
+    .from("college_content")
+    .select("*")
+    .eq("user_id", currentUserId)
+    .maybeSingle();
+
+  if (!data) {
+    await supabaseClient.from("college_content").insert({
+      user_id: currentUserId,
+      personal_statement: "",
+      extended_resume: "",
+      supplement_bank: "",
+      application_checklist: "",
+      college_materials: ""
+    });
+  }
+}
+
+async function loadCollegeContentFromSupabase() {
+  await ensureCollegeContentRow();
+
+  const { data, error } = await supabaseClient
+    .from("college_content")
+    .select("*")
+    .eq("user_id", currentUserId)
+    .single();
+
+  console.log("LOAD COLLEGE CONTENT:", data, error);
+
+  if (error || !data) return;
+
+  state.college.personalStatement = data.personal_statement || "";
+  state.college.extendedResume = data.extended_resume || "";
+  state.college.supplementBank = data.supplement_bank || "";
+  state.college.applicationChecklist = data.application_checklist || "";
+  state.college.collegeMaterials = data.college_materials || "";
+
+  saveState();
+}
+
+async function updateCollegeContentFieldInSupabase(field, value) {
+  const columnMap = {
+    personalStatement: "personal_statement",
+    extendedResume: "extended_resume",
+    supplementBank: "supplement_bank",
+    applicationChecklist: "application_checklist",
+    collegeMaterials: "college_materials"
+  };
+
+  const column = columnMap[field];
+  if (!column) return;
+
+  await supabaseClient
+    .from("college_content")
+    .update({
+      [column]: value,
+      updated_at: new Date().toISOString()
+    })
+    .eq("user_id", currentUserId);
+}
+
+// =========================
+// DATABASE: COLLEGE SCHOOLS
+// =========================
+async function loadCollegeSchoolsFromSupabase() {
+  const { data, error } = await supabaseClient
+    .from("college_schools")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  console.log("LOAD COLLEGE SCHOOLS:", data, error);
+
+  if (error) return;
+
+  state.college.schools = (data || []).map((item) => ({
+    id: item.id,
+    name: item.name,
+    major: item.major,
+    category: item.category
+  }));
+
+  saveState();
+}
+
+async function addCollegeSchoolToSupabase({ name, major, category }) {
+  const { data, error } = await supabaseClient
+    .from("college_schools")
+    .insert({
+      user_id: currentUserId,
+      name,
+      major,
+      category
+    })
+    .select()
+    .single();
+
+  console.log("ADD COLLEGE SCHOOL:", data, error);
+
+  if (error) {
+    alert("Could not save college.");
+    return false;
+  }
+
+  state.college.schools.push({
+    id: data.id,
+    name: data.name,
+    major: data.major,
+    category: data.category
+  });
+
+  saveState();
+  return true;
+}
+
+async function deleteCollegeSchoolFromSupabase(id) {
+  const { error } = await supabaseClient.from("college_schools").delete().eq("id", id);
+  if (error) return;
+
+  state.college.schools = state.college.schools.filter((item) => item.id !== id);
+  saveState();
+  renderPage();
+}
+
+// =========================
+// DATABASE: COLLEGE DEADLINES
+// =========================
+async function loadCollegeDeadlinesFromSupabase() {
+  const { data, error } = await supabaseClient
+    .from("college_deadlines")
+    .select("*")
+    .order("date", { ascending: true });
+
+  console.log("LOAD COLLEGE DEADLINES:", data, error);
+
+  if (error) return;
+
+  state.college.deadlines = (data || []).map((item) => ({
+    id: item.id,
+    school: item.school,
+    type: item.type,
+    date: item.date
+  }));
+
+  saveState();
+}
+
+async function addCollegeDeadlineToSupabase({ school, type, date }) {
+  const { data, error } = await supabaseClient
+    .from("college_deadlines")
+    .insert({
+      user_id: currentUserId,
+      school,
+      type,
+      date
+    })
+    .select()
+    .single();
+
+  console.log("ADD COLLEGE DEADLINE:", data, error);
+
+  if (error) {
+    alert("Could not save deadline.");
+    return false;
+  }
+
+  state.college.deadlines.push({
+    id: data.id,
+    school: data.school,
+    type: data.type,
+    date: data.date
+  });
+
+  saveState();
+  return true;
+}
+
+async function deleteCollegeDeadlineFromSupabase(id) {
+  const { error } = await supabaseClient.from("college_deadlines").delete().eq("id", id);
+  if (error) return;
+
+  state.college.deadlines = state.college.deadlines.filter((item) => item.id !== id);
   saveState();
   renderPage();
 }
@@ -662,11 +907,34 @@ function bindCourseTextareaAutosave() {
 
 function bindExtracurricularAutosave() {
   document.querySelectorAll("textarea[data-activity-id]").forEach((textarea) => {
-    textarea.addEventListener("blur", () => {
+    textarea.addEventListener("blur", async () => {
       const activity = state.extracurriculars.find((a) => a.id === textarea.dataset.activityId);
       if (!activity) return;
+
       activity[textarea.dataset.activityField] = textarea.value;
       saveState();
+      await updateExtracurricularFieldInSupabase(activity.id, textarea.dataset.activityField, textarea.value);
+    });
+  });
+}
+
+function bindCollegeTextAutosave() {
+  ["personalStatement", "extendedResume", "supplementBank", "applicationChecklist", "collegeMaterials"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.addEventListener("blur", async () => {
+      const fieldMap = {
+        personalStatement: "personalStatement",
+        extendedResume: "extendedResume",
+        supplementBank: "supplementBank",
+        applicationChecklist: "applicationChecklist",
+        collegeMaterials: "collegeMaterials"
+      };
+
+      state.college[fieldMap[id]] = el.value;
+      saveState();
+      await updateCollegeContentFieldInSupabase(fieldMap[id], el.value);
     });
   });
 }
@@ -691,22 +959,16 @@ async function deleteAssignment(id) {
   await deleteAssignmentFromSupabase(id);
 }
 
-function deleteDeadline(id) {
-  state.college.deadlines = state.college.deadlines.filter((item) => item.id !== id);
-  saveState();
-  renderPage();
+async function deleteDeadline(id) {
+  await deleteCollegeDeadlineFromSupabase(id);
 }
 
-function deleteCollegeSchool(id) {
-  state.college.schools = state.college.schools.filter((item) => item.id !== id);
-  saveState();
-  renderPage();
+async function deleteCollegeSchool(id) {
+  await deleteCollegeSchoolFromSupabase(id);
 }
 
-function deleteActivity(id) {
-  state.extracurriculars = state.extracurriculars.filter((item) => item.id !== id);
-  saveState();
-  renderPage();
+async function deleteActivity(id) {
+  await deleteExtracurricularFromSupabase(id);
 }
 
 function renderGradeBandList() {
@@ -968,9 +1230,6 @@ function renderExtracurriculars() {
   bindExtracurricularAutosave();
 }
 
-// =========================
-// FORMS
-// =========================
 function bindForms() {
   const courseForm = document.getElementById("courseForm");
   if (courseForm) {
@@ -1000,17 +1259,17 @@ function bindForms() {
 
   const deadlineForm = document.getElementById("deadlineForm");
   if (deadlineForm) {
-    deadlineForm.addEventListener("submit", (e) => {
+    deadlineForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      state.college.deadlines.push({
-        id: crypto.randomUUID(),
+      const ok = await addCollegeDeadlineToSupabase({
         school: document.getElementById("deadlineSchool").value.trim(),
         type: document.getElementById("deadlineType").value.trim(),
         date: document.getElementById("deadlineDate").value
       });
 
-      saveState();
+      if (!ok) return;
+
       renderPage();
       deadlineForm.reset();
     });
@@ -1018,17 +1277,17 @@ function bindForms() {
 
   const collegeListForm = document.getElementById("collegeListForm");
   if (collegeListForm) {
-    collegeListForm.addEventListener("submit", (e) => {
+    collegeListForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      state.college.schools.push({
-        id: crypto.randomUUID(),
+      const ok = await addCollegeSchoolToSupabase({
         name: document.getElementById("collegeName").value.trim(),
         major: document.getElementById("collegeMajor").value.trim(),
         category: document.getElementById("collegeCategory").value
       });
 
-      saveState();
+      if (!ok) return;
+
       renderPage();
       collegeListForm.reset();
     });
@@ -1051,24 +1310,16 @@ function bindForms() {
 
   const activityForm = document.getElementById("activityForm");
   if (activityForm) {
-    activityForm.addEventListener("submit", (e) => {
+    activityForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      state.extracurriculars.push({
-        id: crypto.randomUUID(),
+      const ok = await addExtracurricularToSupabase({
         title: document.getElementById("activityTitle").value.trim(),
-        category: document.getElementById("activityCategory").value.trim(),
-        description: "",
-        accomplishments: "",
-        impact: "",
-        leadership: "",
-        goals: "",
-        reminders: "",
-        resumeIdeas: "",
-        essayIdeas: ""
+        category: document.getElementById("activityCategory").value.trim()
       });
 
-      saveState();
+      if (!ok) return;
+
       renderPage();
       activityForm.reset();
     });
@@ -1111,15 +1362,7 @@ function bindForms() {
     });
   }
 
-  ["personalStatement", "extendedResume", "supplementBank", "applicationChecklist", "collegeMaterials"].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener("blur", () => {
-        state.college[id] = el.value;
-        saveState();
-      });
-    }
-  });
+  bindCollegeTextAutosave();
 }
 
 function bindSubjectForms() {
@@ -1154,25 +1397,18 @@ function bindSubjectForms() {
 }
 
 function fillCollegeTextareas() {
-  ["personalStatement", "extendedResume", "supplementBank", "applicationChecklist", "collegeMaterials"].forEach((id) => {
+  const map = {
+    personalStatement: state.college.personalStatement,
+    extendedResume: state.college.extendedResume,
+    supplementBank: state.college.supplementBank,
+    applicationChecklist: state.college.applicationChecklist,
+    collegeMaterials: state.college.collegeMaterials
+  };
+
+  Object.keys(map).forEach((id) => {
     const el = document.getElementById(id);
-    if (el) el.value = state.college[id] || "";
+    if (el) el.value = map[id] || "";
   });
-}
-
-function seedDemoData() {
-  state = clone(defaultState);
-  state.currentYearView = "11th Grade";
-  state.unreadEmailCount = 12;
-  saveState();
-  renderPage();
-}
-
-function resetAllData() {
-  if (!confirm("Are you sure you want to delete all saved data?")) return;
-  state = clone(defaultState);
-  saveState();
-  renderPage();
 }
 
 function renderPage() {
@@ -1197,6 +1433,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadCoursesFromSupabase();
   await loadAssignmentsFromSupabase();
+  await loadExtracurricularsFromSupabase();
+  await loadCollegeContentFromSupabase();
+  await loadCollegeSchoolsFromSupabase();
+  await loadCollegeDeadlinesFromSupabase();
 
   bindForms();
   renderPage();
